@@ -35,4 +35,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4).status==200 else 1)" || exit 1
 
-CMD ["sh", "-c", "python -m app.database.local_init && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1"]
+# Start uvicorn FIRST so the service passes Render's health check, and run
+# the (potentially slow) national dataset seed concurrently in the background.
+# The seed is idempotent; until it finishes the API simply serves fewer rows.
+CMD ["sh", "-c", "python -m app.database.local_init > /tmp/seed.log 2>&1 & exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1"]
