@@ -1,4 +1,4 @@
-"""GIS support: geometry and GeoJSON output for the groundwater maps.
+﻿"""GIS support: geometry and GeoJSON output for the groundwater maps.
 
 With the national synthetic dataset the number of assessment units (villages)
 is very large (~600k), so the service generates geometry from stored
@@ -14,7 +14,7 @@ import math
 from functools import lru_cache
 from pathlib import Path
 
-from sqlalchemy import func, select
+from sqlalchemy import Integer, case, cast, func, select
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
@@ -345,7 +345,7 @@ def _district_level_features(
             func.avg(func.coalesce(GroundwaterAssessment.extraction_total, 0)).label("avg_extraction"),
             func.avg(func.coalesce(GroundwaterAssessment.annual_extractable_resource, 0)).label("avg_resource"),
             func.count(AssessmentUnit.id).label("unit_count"),
-            func.max(func.coalesce(GroundwaterAssessment.is_demo, False)).label("any_demo"),
+            func.max(case((GroundwaterAssessment.is_demo.is_(True), 1), else_=0)).label("any_demo"),
         )
         .join(State, AssessmentUnit.state_id == State.id)
         .outerjoin(District, AssessmentUnit.district_id == District.id)
@@ -1068,7 +1068,7 @@ def _build_basin_geojson_uncached(
                     func.avg(func.coalesce(GroundwaterAssessment.extraction_total, 0)).label("avg_extraction"),
                     func.avg(func.coalesce(GroundwaterAssessment.annual_extractable_resource, 0)).label("avg_resource"),
                     func.count(AssessmentUnit.id).label("unit_count"),
-                    func.max(func.coalesce(GroundwaterAssessment.is_demo, False)).label("any_demo"),
+                    func.max(case((GroundwaterAssessment.is_demo.is_(True), 1), else_=0)).label("any_demo"),
                 )
                 .join(AssessmentUnit, AssessmentUnit.district_id == District.id)
                 .join(State, AssessmentUnit.state_id == State.id)
