@@ -25,6 +25,15 @@ dist/
 # IDE
 .idea/
 .vscode/
+
+# Deployment hygiene
+states/
+data/
+backend/dev.db-*
+*.sqlite
+backend/pid.txt
+backend/.env.bak
+frontend/dev-dist/
 # Deployment hygiene
 states/
 data/

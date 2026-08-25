@@ -1,3 +1,12 @@
+# Render Blueprint for the IN-GRES AI FastAPI backend.
+# Import this repo at https://dashboard.render.com/blueprints — Render reads
+# this file and provisions the service automatically.
+#
+# Notes:
+# - Free plan: service sleeps after 15 min idle (cold start ~50 s) and the
+#   ephemeral disk resets the SQLite DB on every redeploy.
+# - SEED_DATASET=demo keeps first boot fast; switch to "national" for the
+#   full all-India synthetic set (slower boot, more RAM).
 services:
   - type: web
     name: ingres-ai-backend
@@ -21,8 +30,14 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: SEED_ADMIN_PASSWORD
-        sync: false
+        generateValue: true
       - key: SEED_USER_PASSWORD
-        sync: false
+        generateValue: true
       - key: CORS_ORIGINS
-        value: https://ingres-ai-gold.vercel.app
+        value: https://ingres-ai.vercel.app
+      - key: LLM_ENABLED
+        value: "false"
+      - key: LIVE_DATA_ENABLED
+        value: "false"
+      - key: SCHEDULED_REPORTS_ENABLED
+        value: "false"
