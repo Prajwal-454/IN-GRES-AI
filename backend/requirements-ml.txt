@@ -1,0 +1,4 @@
+# Optional deep-learning forecasting (Phase 21). Install to enable the LSTM /
+# Transformer models in app/ingres/ml_forecast.py. Everything still works
+# without it — deep-learning methods degrade to the best statistical model.
+torch==2.5.1

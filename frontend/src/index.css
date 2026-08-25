@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 199 89% 40%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 92%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 199 89% 94%;
+    --accent-foreground: 199 89% 30%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 88%;
+    --input: 214 32% 88%;
+    --ring: 199 89% 40%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Terrain-relief basemap: pure natural grayscale — no tint, no darkening. */
+.ingres-relief {
+  filter: grayscale(1);
+}
+
+/* Dark hover tooltip for the GIS choropleth. */
+.leaflet-tooltip.gw-tooltip {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #e2e8f0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+.leaflet-tooltip.gw-tooltip::before {
+  display: none;
+}
+
+/* Geographic labels pane above the weather canvas. */
+.ingres-city-label {
+  position: relative;
+  transform: translate(-50%, -110%);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
+.ingres-city-label .city-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow:
+    0 0 3px rgba(0, 0, 0, 0.9),
+    0 1px 2px rgba(0, 0, 0, 0.9);
+  line-height: 1.2;
+}
+
+.ingres-city-label .city-temp {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f8fafc;
+  text-shadow:
+    0 0 3px rgba(0, 0, 0, 0.95),
+    0 1px 2px rgba(0, 0, 0, 0.95);
+  line-height: 1.2;
+}
+
+/* Selected-location marker: white core, glow halo, stem (MSN-style pin). */
+@keyframes ingres-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes ingres-pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.ingres-pin-marker {
+  position: relative;
+  width: 18px;
+  height: 30px;
+}
+
+.ingres-pin-marker::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.35);
+  animation: ingres-pulse 2s ease-out infinite;
+}
+
+.ingres-pin-marker::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 2.5px rgba(255, 255, 255, 0.45),
+    0 0 14px rgba(255, 255, 255, 0.85);
+  animation: ingres-pulse-dot 2s ease-in-out infinite;
+}

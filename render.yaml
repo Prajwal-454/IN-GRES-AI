@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: ingres-ai-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        value: sqlite:///./deploy.db
+      - key: ENABLE_GEOMETRY
+        value: "false"
+      - key: AUTO_CREATE_SCHEMA
+        value: "true"
+      - key: SEED_DATASET
+        value: demo
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: SEED_USER_PASSWORD
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://ingres-ai-gold.vercel.app

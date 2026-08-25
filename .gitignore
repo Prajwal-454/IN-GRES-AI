@@ -1,0 +1,37 @@
+# Environment
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.db
+
+# Large GeoJSON data files (downloaded from GADM)
+backend/app/gis/india_districts.geojson
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Build / runtime
+*.log
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+# Deployment hygiene
+states/
+data/
+backend/dev.db-*
+*.sqlite
+backend/pid.txt
+backend/.env.bak
+frontend/dev-dist/
+backend/voice_models/
+backend/dev.db.bak
