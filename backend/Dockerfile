@@ -24,6 +24,10 @@ RUN groupadd --system app && useradd --system --gid app --no-create-home app
 
 COPY --chown=app:app . .
 
+# WORKDIR /app is root-owned by default; the non-root app user needs write
+# access for the SQLite file and runtime dirs (reports, VAPID keys).
+RUN mkdir -p /app/data && chown -R app:app /app
+
 USER app
 
 EXPOSE 8000
