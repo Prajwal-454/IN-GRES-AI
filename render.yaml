@@ -4,9 +4,13 @@
 #
 # Notes:
 # - Free plan: service sleeps after 15 min idle (cold start ~50 s) and the
-#   ephemeral disk resets the SQLite DB on every redeploy.
-# - SEED_DATASET=demo keeps first boot fast; switch to "national" for the
-#   full all-India synthetic set (slower boot, more RAM).
+#   ephemeral disk resets the SQLite DB on every redeploy, so the national
+#   seed runs on every boot.
+# - SEED_DATASET=national covers ALL 36 states/UTs + ~911 districts so the
+#   UI never shows missing states. SEED_VILLAGES_PER_DISTRICT caps the
+#   generated village layer (~16k villages, ~30 MB DB, ~10 s seed) so boot
+#   stays fast and the DB stays well under the free-tier disk/RAM limits (full ~550k-village layer
+#   needs ~1.8 GB SQLite and would not fit).
 services:
   - type: web
     name: ingres-ai-backend
@@ -26,7 +30,9 @@ services:
       - key: AUTO_CREATE_SCHEMA
         value: "true"
       - key: SEED_DATASET
-        value: demo
+        value: national
+      - key: SEED_VILLAGES_PER_DISTRICT
+        value: "20"
       - key: JWT_SECRET
         generateValue: true
       - key: SEED_ADMIN_PASSWORD
@@ -34,7 +40,7 @@ services:
       - key: SEED_USER_PASSWORD
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://ingres-ai.vercel.app
+        value: https://ingres-static.vercel.app
       - key: LLM_ENABLED
         value: "false"
       - key: LIVE_DATA_ENABLED
