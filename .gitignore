@@ -10,9 +10,6 @@ venv/
 .pytest_cache/
 *.db
 
-# Large GeoJSON data files (downloaded from GADM)
-backend/app/gis/india_districts.geojson
-
 # Node
 node_modules/
 dist/
@@ -27,16 +24,6 @@ dist/
 .vscode/
 
 # Deployment hygiene
-states/
-data/
-backend/dev.db-*
-*.sqlite
-backend/pid.txt
-backend/.env.bak
-frontend/dev-dist/
-# Deployment hygiene
-states/
-data/
 backend/dev.db-*
 *.sqlite
 backend/pid.txt
@@ -45,3 +32,9 @@ frontend/dev-dist/
 backend/voice_models/
 backend/dev.db.bak
 frontend/.vercel/
+
+# Secrets (never commit)
+data/vapid-keys.json
+
+# Runtime cache
+backend/app/data/
