@@ -44,3 +44,4 @@ backend/.env.bak
 frontend/dev-dist/
 backend/voice_models/
 backend/dev.db.bak
+frontend/.vercel/
