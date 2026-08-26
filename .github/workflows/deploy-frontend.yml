@@ -1,0 +1,39 @@
+name: Deploy Frontend (Vercel)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "vercel.json"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      # Production project -> ingres-ai-gold.vercel.app
+      - name: Deploy ingres-ai
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --yes --token=$VERCEL_TOKEN
+
+      # Second domain -> ingres-static.vercel.app
+      - name: Deploy ingres-static
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_STATIC }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --yes --token=$VERCEL_TOKEN
