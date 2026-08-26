@@ -38,3 +38,5 @@ data/vapid-keys.json
 
 # Runtime cache
 backend/app/data/
+
+.vercel

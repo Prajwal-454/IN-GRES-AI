@@ -1061,7 +1061,7 @@ export default function Assistant() {
       {/* Chat column */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Chat header */}
-        <div className="flex items-center gap-3 border-b px-4 py-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-3">
           <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-sky-500 text-primary-foreground">
             <Bot className="h-5 w-5" />
             <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background bg-emerald-500" />
@@ -1334,7 +1334,7 @@ export default function Assistant() {
                   !messages.slice(idx + 1).some((x) => x.role === "assistant");
                 return m.role === "user" ? (
                   <div key={m.id} className="flex justify-end">
-                    <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground shadow-sm whitespace-pre-line">
+                    <div className="min-w-0 max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground shadow-sm whitespace-pre-line [overflow-wrap:anywhere]">
                       {m.content}
                       <div className="mt-1 text-right text-[10px] text-primary-foreground/70">
                         {formatTime(m.created_at)}
@@ -1348,7 +1348,7 @@ export default function Assistant() {
                     </div>
                     <div
                       className={cn(
-                        "min-w-0 max-w-[85%] rounded-2xl rounded-tl-sm border bg-card px-4 py-2.5 shadow-sm",
+                        "min-w-0 max-w-[min(85%,calc(100%-2.75rem))] rounded-2xl rounded-tl-sm border bg-card px-4 py-2.5 shadow-sm [overflow-wrap:anywhere]",
                         isError && "border-destructive/40 bg-destructive/5"
                       )}
                     >
@@ -1577,7 +1577,7 @@ export default function Assistant() {
                 placeholder={t("ask_about_gw")}
                 disabled={sending}
                 rows={1}
-                className="min-h-0 flex-1 resize-none border-0 bg-transparent px-1 py-2 shadow-none focus-visible:ring-0"
+                className="min-h-0 min-w-0 flex-1 resize-none border-0 bg-transparent px-1 py-2 shadow-none focus-visible:ring-0"
               />
               <Button
                 type="submit"
