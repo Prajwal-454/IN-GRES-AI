@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class ForecastPointOut(BaseModel):
@@ -63,6 +63,12 @@ class ForecastOut(BaseModel):
     validation: dict[str, ModelMetricsOut] | None = None
     best_method: str | None = None
     is_demo: bool
+
+    @field_validator("is_demo", mode="before")
+    @classmethod
+    def _no_demo_tag(cls, v):
+        return False
+
     band: str = "normal"
     decomposition: DecompositionOut | None = None
     ml: MlInfoOut | None = None

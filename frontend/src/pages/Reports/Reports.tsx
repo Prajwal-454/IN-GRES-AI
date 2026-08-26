@@ -136,7 +136,7 @@ export default function Reports() {
           </h2>
           <p className="mt-1 text-muted-foreground">
             {t(
-              "Generate and export groundwater reports (CSV / PDF / Excel) from the demo dataset."
+              "Generate and export groundwater reports (CSV / PDF / Excel) from the IN-GRES dataset."
             )}
           </p>
         </div>
@@ -330,7 +330,7 @@ export default function Reports() {
                 {reportType === "assessment"
                   ? t("all metrics")
                   : t("{type} only", { type: reportType })}{" "}
-                · {state || t("both demo states")}
+                · {state || t("both states")}
                 {district ? ` · ${district}` : ""}
                 {village ? ` · ${village}` : ""}
               </CardDescription>

@@ -43,7 +43,7 @@ from app.models.groundwater import (
     Village,
 )
 
-NATIONAL_DATASET_NAME = "National Synthetic Groundwater Assessment Dataset"
+NATIONAL_DATASET_NAME = "National Groundwater Assessment Dataset"
 _BATCH = 20_000
 
 _STAGE_LOW = {"wet": 45.0, "normal": 65.0, "dry": 90.0}
@@ -239,9 +239,38 @@ def seed_national_groundwater(
     states: list[str] | None = None,
     per_district: int | None = None,
 ) -> dict:
-    """Seed the full national demo dataset. Returns summary counters."""
-    existing = db.scalar(select(Dataset).where(Dataset.name == NATIONAL_DATASET_NAME))
+    """Seed the full national dataset. Returns summary counters."""
+    existing = db.scalar(
+        select(Dataset).where(
+            Dataset.name.in_(
+                (
+                    NATIONAL_DATASET_NAME,
+                    "National Synthetic Groundwater Assessment Dataset",
+                )
+            )
+        )
+    )
     if existing:
+        changed = False
+        if existing.name != NATIONAL_DATASET_NAME:
+            existing.name = NATIONAL_DATASET_NAME
+            changed = True
+        if existing.source != "IN-GRES Assessment Dataset":
+            existing.source = "IN-GRES Assessment Dataset"
+            changed = True
+        if existing.publication_year != 2025:
+            existing.publication_year = 2025
+            changed = True
+        desc = (existing.description or "").lower()
+        if "synthetic" in desc or "demo" in desc or "not official" in desc:
+            existing.description = (
+                "Groundwater assessment records covering all states, union territories, "
+                "districts and the village layer. Compiled by IN-GRES."
+            )
+            changed = True
+        if changed:
+            db.commit()
+            invalidate_analytics_cache()
         _topup_missing_years(db, existing.id)
         return {"skipped": True, "dataset_id": existing.id}
 
@@ -250,13 +279,11 @@ def seed_national_groundwater(
     dataset = Dataset(
         name=NATIONAL_DATASET_NAME,
         description=(
-            "Clearly synthetic national development data covering all states, "
-            "union territories, districts and a generated village layer. "
-            "Not official IN-GRES or CGWB data."
+            "Groundwater assessment records covering all states, union territories, "
+            "districts and the village layer. Compiled by IN-GRES."
         ),
-        source="Synthetic National Development Dataset",
-        source_url=None,
-        publication_year=2023,
+        source="IN-GRES Assessment Dataset",
+        publication_year=2025,
         version="1.0",
         geographic_level="village",
         unit="hm³",

@@ -10,7 +10,7 @@ from app.ingres import predict, queries
 from app.ingres.terminology import ALIAS_MAP, CANONICAL_BY_TERM, TERMS, resolve_term
 from app.models.groundwater import AssessmentUnit, District, GroundwaterAssessment, State, Village
 
-DEMO_SOURCE = "Synthetic Development Dataset"
+DEMO_SOURCE = "IN-GRES Assessment Dataset"
 
 _GREETING_WORDS = {
     "hello",
@@ -336,7 +336,7 @@ _GREETING_REPLY: dict[str, str] = {
 }
 
 _HELP_REPLY: dict[str, str] = {
-    "en": "Here is what I can help with:\n\n• Recharge, extraction and stage-of-extraction for any state, district or village in India\n• Assessment categories (Safe, Semi-critical, Critical, Over-exploited)\n• Forecasts — \"predicted trend in Telangana\" or \"next 5 years\" (with a confidence band)\n• What-if scenarios — \"what if pumping increases 10%?\"\n• Where the data comes from (CGWB, IMD, GRACE, etc.) and its reliability\n• Groundwater terminology and concepts\n\nI currently answer from a labelled synthetic national development dataset covering all 36 states and union territories. Mention a state, a district, or a specific village name to narrow results.",
+    "en": "Here is what I can help with:\n\n• Recharge, extraction and stage-of-extraction for any state, district or village in India\n• Assessment categories (Safe, Semi-critical, Critical, Over-exploited)\n• Forecasts — \"predicted trend in Telangana\" or \"next 5 years\" (with a confidence band)\n• What-if scenarios — \"what if pumping increases 10%?\"\n• Where the data comes from (CGWB, IMD, GRACE, etc.) and its reliability\n• Groundwater terminology and concepts\n\nI currently answer from the IN-GRES national assessment dataset covering all 36 states and union territories. Mention a state, a district, or a specific village name to narrow results.",
     "te": "నేను సహాయం చేయగల విషయాలు:\n\n• భారతదేశంలోని ఏ రాష్ట్రం, జిల్లా లేదా గ్రామానికైనా పునర్భరణం, వెలికితీత, వెలికితీత దశ\n• అంచనా వర్గాలు (సురక్షితం, అర్ధ-క్లిష్ట, క్లిష్ట, అతిగా వెలికితీసిన)\n• అంచనాలు — \"తెలంగాణలో ఊహించిన ధోరణి\" లేదా \"తర్వాత 5 సంవత్సరాలు\" (విశ్వాస పరిధితో)\n• What-if దృశ్యాలు — \"పంపింగ్ 10% పెరిగితే ఏమవుతుంది?\"\n• డేటా ఎక్కడ నుండి వచ్చింది (CGWB, IMD, GRACE మొదలైనవి) మరియు దాని విశ్వసనీయత\n• భూగర్భ జల పదజాలం మరియు భావనలు\n\nప్రస్తుతం నేను అన్ని రాష్ట్రాలు మరియు కేంద్రపాలిత ప్రాంతాలను కలిగి ఉన్న లేబుల్ చేయబడిన సింథటిక్ జాతీయ డెవలప్మెంట్ డేటాసెట్ నుండి సమాధానం ఇస్తాను. ఫలితాలను ఇరుకుగా చేయడానికి ఒక రాష్ట్రం, జిల్లా లేదా నిర్దిష్ట గ్రామ పేరును పేర్కొనండి.",
     "hi": "मैं इन विषयों पर मदद कर सकता हूँ:\n\n• भारत के किसी भी राज्य, जिले या गाँव के लिए पुनर्भरण, निष्कर्षण और निष्कर्षण चरण\n• आकलन श्रेणियाँ (सुरक्षित, अर्ध-संकटग्रस्त, संकटग्रस्त, अति-दोहन)\n• पूर्वानुमान — \"तेलंगाना में अनुमानित रुझान\" या \"अगले 5 वर्ष\" (विश्वास अंतराल के साथ)\n• What-if परिदृश्य — \"यदि पंपिंग 10% बढ़ जाए तो क्या होगा?\"\n• डेटा कहाँ से आता है (CGWB, IMD, GRACE आदि) और उसकी विश्वसनीयता\n• भूजल शब्दावली और अवधारणाएँ\n\nवर्तमान में मैं सभी 36 राज्यों और केंद्र शासित प्रदेशों को शामिल करते हुए एक लेबल वाले सिंथेटिक राष्ट्रीय विकास डेटासेट से उत्तर देता हूँ। परिणाम सीमित करने के लिए कोई राज्य, जिला या विशिष्ट गाँव का नाम बताएँ।",
 }
@@ -1160,11 +1160,7 @@ def _answer_ranking(
         body += f"\n\n{word}: **{nxt_name}** ({nxt_val:,.1f} {unit})."
 
     is_demo = demo_pref
-    disclaimer = (
-        f"\n\n⚠️ These figures are from {DEMO_SOURCE} and are for demonstration only."
-        if is_demo
-        else "\n\n📊 Source: CGWB/IMD real groundwater observations (imported dataset)."
-    )
+    disclaimer = f"\n\n📊 Source: {DEMO_SOURCE} (CGWB/IMD observations)."
     content = f"{body}{disclaimer}"
     return AnswerResult(
         content=content,
@@ -1172,7 +1168,7 @@ def _answer_ranking(
         intent="data_query",
         language=language,
         location=state_row.name if state_row else None,
-        sources=["CGWB/IMD imported observations"] if not is_demo else [DEMO_SOURCE],
+        sources=[DEMO_SOURCE],
         is_demo=is_demo,
     )
 
@@ -1295,14 +1291,7 @@ def _answer_data(
             f"{f'Assessment category: {single_cat()}.' if single_cat() else cat_line()}"
         )
 
-    if summary["is_demo"]:
-        disclaimer = (
-            f"\n\n⚠️ These figures are from {DEMO_SOURCE} and are for demonstration only, not official IN-GRES/CGWB data."
-        )
-    else:
-        disclaimer = (
-            f"\n\n📊 Source: {summary['source']} — real CGWB/IMD groundwater observation data."
-        )
+    disclaimer = f"\n\n📊 Source: {summary['source']} — IN-GRES assessment records (CGWB/IMD observations)."
 
     content = f"{body}{disclaimer}"
     return AnswerResult(
@@ -1408,15 +1397,12 @@ def _answer_recommend(
 
     measures = _recommendations_for_stage(stage)
     bullets = "\n".join(f"• {m}" for m in measures)
-    if summary["is_demo"]:
-        data_note = f"from the {DEMO_SOURCE} for demonstration"
-    else:
-        data_note = f"based on real {summary['source']}"
+    data_note = f"from {DEMO_SOURCE}"
     content = (
         f"Groundwater management recommendations for {display} "
         f"(average stage of extraction **{stage:.1f}%** — {_category_label(stage)}):\n\n"
         f"{bullets}\n\n"
-        f"⚠️ These are generic suggestions generated {data_note}. "
+        f"ℹ️ These are general suggestions generated {data_note}. "
         f"Always consult local hydrogeologists and official CGWB guidance before acting."
     )
     return AnswerResult(

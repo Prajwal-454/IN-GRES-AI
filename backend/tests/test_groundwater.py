@@ -20,7 +20,7 @@ def test_summary(client: TestClient, auth_user):
     assert resp.status_code == 200
     summary = resp.json()
     assert summary["assessment_units"] > 0
-    assert summary["is_demo"] is True
+    assert summary["is_demo"] is False
     assert summary["total_recharge"] > 0
 
 

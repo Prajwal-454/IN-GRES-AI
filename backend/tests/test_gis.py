@@ -93,7 +93,7 @@ def test_gis_india_data_states(client: TestClient, auth_user):
     assert telangana["unit_count"] > 0
     assert telangana["metric_value"] is not None
     assert telangana["stage_of_extraction"] is not None
-    assert telangana["is_demo"] is True
+    assert telangana["is_demo"] is False
 
     andhra = by_name["Andhra Pradesh"]
     assert andhra["has_data"] is True

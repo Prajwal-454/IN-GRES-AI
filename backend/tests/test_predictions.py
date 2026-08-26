@@ -18,7 +18,7 @@ def test_forecast_stage_all_india(client: TestClient, auth_user):
     body = resp.json()
     assert body["metric"] == "stage"
     assert body["unit"] == "%"
-    assert body["is_demo"] is True
+    assert body["is_demo"] is False
     assert len(body["historical"]) >= 2
     assert len(body["forecast"]) == 5
     assert body["forecast"][0]["year"] == body["historical"][-1]["year"] + 1

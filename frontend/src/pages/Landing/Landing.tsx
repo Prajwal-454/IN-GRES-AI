@@ -184,7 +184,7 @@ export default function Landing() {
             </h2>
             <p className="mt-4 text-muted-foreground">
               {t(
-                "IN-GRES AI never fabricates official groundwater numbers. Demo and synthetic datasets are always clearly labelled, sources and years are shown, and uncertain questions are escalated to human groundwater experts."
+                "Answers are computed from the IN-GRES national assessment dataset — sources, years and confidence are shown for every figure, and uncertain questions are escalated to human groundwater experts."
               )}
             </p>
             <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -204,7 +204,7 @@ export default function Landing() {
           <div>
             {t("Indian Groundwater Resource Estimation System â€” AI Virtual Assistant")}
           </div>
-          <div>{t("Phase 1 prototype Â· Demo data labelled")}</div>
+          <div><div>Phase 1 prototype · IN-GRES Assessment Dataset</div></div>
         </div>
       </footer>
     </div>

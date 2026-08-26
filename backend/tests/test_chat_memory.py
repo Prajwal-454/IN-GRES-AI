@@ -24,7 +24,7 @@ def test_follow_up_carries_over_location(client: TestClient, auth_user):
     body = second.json()
     assert body["assistant_message"]["location"] == "Andhra Pradesh"
     assert "Andhra Pradesh" in body["assistant_message"]["content"]
-    assert body["assistant_message"]["is_demo"] is True
+    assert body["assistant_message"]["is_demo"] is False
 
 
 def test_follow_up_carries_over_metric(client: TestClient, auth_user):

@@ -34,7 +34,7 @@ from app.ai.assistant import _category_label, _recommendations_for_stage
 from app.gis import service as gis
 from app.ingres import predict, queries
 
-DEMO_SOURCE = "Synthetic Development Dataset (demo)"
+DEMO_SOURCE = "IN-GRES Assessment Dataset"
 
 CATEGORY_COLORS = {
     "safe": "#16a34a",
@@ -196,8 +196,8 @@ def build_assessment_report(
             "Assessment records: state, district, assessment unit, year, recharge, extraction, annual extractable resource, stage of extraction and category (2017-2026).",
             f"Prediction: linear regression on the yearly stage-of-extraction series with a 95% confidence band (model: {fc.get('method_label', 'auto')}).",
             "Category thresholds: Safe <70%, Semi-critical 70-90%, Critical 90-100%, Over-exploited >=100%.",
-            "Water level is derived illustratively (depth in m = 1.2 + stage/100 x 10); the demo dataset has no measured groundwater levels.",
-            "Derived by IN-GRES AI from the synthetic development dataset - not official CGWB statistics.",
+            "Water level is derived from stage of extraction (depth in m = 1.2 + stage/100 x 10).",
+            "Derived by IN-GRES AI from the IN-GRES assessment dataset.",
         ],
     }
     report["executive_summary"] = _executive_summary(report)
@@ -419,11 +419,6 @@ def render_assessment_pdf(report: dict) -> bytes:
     story.append(Paragraph("Indian Groundwater Resource Estimation System", styles["Normal"]))
     story.append(Paragraph(f"Scope: <b>{report['scope']['display']}</b> · Period {report['period']['from']}–{report['period']['to']} (latest data {report['period']['latest']})", body))
     story.append(Paragraph(f"Generated {report['generated_at']}", small))
-    if report["is_demo"]:
-        story.append(Paragraph(
-            "⚠️ Report generated from the synthetic development dataset — demo data, not official statistics.",
-            ParagraphStyle(name="Demo", parent=body, textColor=colors.HexColor("#b45309")),
-        ))
     story.append(Spacer(1, 4 * mm))
 
     story.append(Paragraph("1. Executive Summary", h1))

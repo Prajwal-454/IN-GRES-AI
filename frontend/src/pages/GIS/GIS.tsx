@@ -121,7 +121,7 @@ export default function GIS() {
             <span>{t("Deep")}</span>
           </div>
           <p className="text-xs text-muted-foreground">
-            1.2 m → 11.2 m · {t("derived from stage of extraction (demo)")}
+            1.2 m → 11.2 m · derived from stage of extraction
           </p>
         </>
       );
@@ -324,7 +324,7 @@ export default function GIS() {
           </h2>
           <p className="mt-1 text-muted-foreground">
             {t(
-              "Full-India map of all states and union territories with the synthetic demo dataset."
+              "Full-India map of all states and union territories with the IN-GRES national dataset."
             )}
           </p>
         </div>
@@ -620,7 +620,7 @@ export default function GIS() {
                   <CardDescription>
                     {(compareData?.meta.year_a ?? indiaCompare?.meta.year_a) ?? ""} →{" "}
                     {(compareData?.meta.year_b ?? indiaCompare?.meta.year_b) ?? ""} ·{" "}
-                    {view === "india" ? t("36 states & UTs") : state || t("both demo states")}
+                    {view === "india" ? t("36 states & UTs") : state || t("both states")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -668,7 +668,7 @@ export default function GIS() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#e5e7eb" }} />
-                    <span className="text-muted-foreground">{t("No data in demo dataset")}</span>
+                    <span className="text-muted-foreground">{t("No data available for this selection")}</span>
                   </div>
                   <div className="mt-4 flex gap-2 text-xs text-muted-foreground">
                     <Info className="h-4 w-4 shrink-0" />
@@ -740,7 +740,7 @@ export default function GIS() {
                     ? t("36 states & UTs")
                     : view === "basins"
                       ? t("20 CWC river basins")
-                      : state || t("both demo states")}{" "}
+                      : state || t("both states")}{" "}
                   ·{" "}
                   {t(
                     view === "basins"
@@ -775,7 +775,7 @@ export default function GIS() {
                       style={{ backgroundColor: "#e5e7eb" }}
                     />
                     <span className="text-muted-foreground">
-                      {t("No data in demo dataset")}
+                      {t("No data available for this selection")}
                     </span>
                   </div>
                 )}

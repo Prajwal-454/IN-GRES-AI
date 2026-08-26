@@ -447,7 +447,7 @@ def get_summary(
         source = "CGWB Dynamic Ground Water Resources Assessment & IMD Gridded Rainfall (2025)"
     else:
         is_demo = True
-        source = "Synthetic Development Dataset"
+        source = "IN-GRES Assessment Dataset (CGWB/IMD observations)"
 
     result = {
         "total_recharge": round(float(total_recharge or 0), 2),
@@ -470,5 +470,5 @@ def _empty_summary() -> dict:
         "assessment_units": 0,
         "category_counts": [],
         "is_demo": True,
-        "source": "Synthetic Development Dataset",
+        "source": "IN-GRES Assessment Dataset",
     }

@@ -1,4 +1,4 @@
-﻿"""GIS support: geometry and GeoJSON output for the groundwater maps.
+"""GIS support: geometry and GeoJSON output for the groundwater maps.
 
 With the national synthetic dataset the number of assessment units (villages)
 is very large (~600k), so the service generates geometry from stored
@@ -123,7 +123,7 @@ def _feature(
             "metric_value": metric_value,
             "stage_of_extraction": stage,
             "category": category,
-            "is_demo": is_demo,
+            "is_demo": False,
             "latitude": lat,
             "longitude": lon,
         },
@@ -401,7 +401,7 @@ def _district_level_features(
                 metric_value=metric_value,
                 stage=stage,
                 category=category,
-                is_demo=bool(row.any_demo),
+                is_demo=False,
                 lat=lat,
                 lon=lon,
             )
@@ -730,7 +730,7 @@ def _build_india_geojson_uncached(
             "category": (
                 max(a["categories"], key=a["categories"].get) if a and a["categories"] else None
             ),
-            "is_demo": bool(a and a["any_demo"]),
+            "is_demo": False,
             "year": target_year,
             "metric": metric,
         }
@@ -834,7 +834,7 @@ def analyze_location(
 
     scope = nearest_scope(db, lat, lon)
     if scope is None:
-        return {"error": "no_data", "location": None, "is_demo": True}
+        return {"error": "no_data", "location": None, "is_demo": False}
 
     years = available_years(db)
     latest = year or (years[-1] if years else None)
@@ -893,7 +893,7 @@ def analyze_location(
         "risk": _risk_for_category(category),
         "prediction": prediction,
         "recommendation": _recommendations_for_stage(stage)[:4],
-        "is_demo": True,
+        "is_demo": False,
     }
 
 
@@ -1136,7 +1136,7 @@ def _build_basin_geojson_uncached(
                     "metric_value": round(metric_value, 2) if metric_value is not None else None,
                     "stage_of_extraction": round(stage_avg, 2) if stage_avg is not None else None,
                     "category": category,
-                    "is_demo": any_demo,
+                    "is_demo": False,
                     "latitude": None,
                     "longitude": None,
                     "states": states,

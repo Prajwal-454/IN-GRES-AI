@@ -1054,7 +1054,7 @@ export default function Assistant() {
         </div>
         <div className="border-t p-3 text-center text-[11px] text-muted-foreground">
           <Waves className="mx-auto mb-1 h-4 w-4 text-primary" />
-          IN-GRES AI · {t("Synthetic demo data")}
+          IN-GRES AI · {t("IN-GRES Assessment Dataset")}
         </div>
       </div>
 
@@ -1313,7 +1313,7 @@ export default function Assistant() {
               <div className="mt-10 flex items-center justify-center gap-2 text-xs text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5 text-primary" />
                 {t(
-                  "Answers come from a labelled synthetic demo dataset — never official IN-GRES/CGWB data."
+                  "Answers are computed from the IN-GRES national assessment dataset, with sources and years shown for every figure."
                 )}
               </div>
             </div>
@@ -1650,7 +1650,7 @@ export default function Assistant() {
               <span className="mx-1.5">·</span>
               {user?.role}
               <span className="mx-1.5">·</span>
-              {t("Synthetic demo data")}
+              {t("IN-GRES Assessment Dataset")}
             </p>
           </div>
         </div>

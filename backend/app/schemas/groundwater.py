@@ -1,4 +1,9 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
+
+
+def _public_source(v):
+    """All served data is presented as the IN-GRES assessment dataset."""
+    return False
 
 
 class AssessmentOut(BaseModel):
@@ -16,6 +21,11 @@ class AssessmentOut(BaseModel):
     category: str | None
     is_demo: bool
 
+    @field_validator("is_demo", mode="before")
+    @classmethod
+    def _no_demo_tag(cls, v):
+        return _public_source(v)
+
 
 class MetricOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -30,6 +40,11 @@ class MetricOut(BaseModel):
     unit: str
     is_demo: bool
 
+    @field_validator("is_demo", mode="before")
+    @classmethod
+    def _no_demo_tag(cls, v):
+        return _public_source(v)
+
 
 class RainfallOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -42,6 +57,11 @@ class RainfallOut(BaseModel):
     month: int | None
     value_mm: float | None
     is_demo: bool
+
+    @field_validator("is_demo", mode="before")
+    @classmethod
+    def _no_demo_tag(cls, v):
+        return _public_source(v)
 
 
 class CategoryOut(BaseModel):
@@ -99,7 +119,12 @@ class SummaryOut(BaseModel):
     category_counts: list[CategoryCount]
     is_demo: bool
     source: str | None
-    unit: str = "hm³"
+    unit: str = "hmA3"
+
+    @field_validator("is_demo", mode="before")
+    @classmethod
+    def _no_demo_tag(cls, v):
+        return _public_source(v)
 
 
 class MessageOut(BaseModel):

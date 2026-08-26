@@ -35,7 +35,7 @@ def test_data_answer_composed_by_llm(client: TestClient, auth_user, monkeypatch)
     # ...and the structured cards still render (intent preserved).
     assert msg["intent"] == "data_query"
     assert msg["response_type"] == "data"
-    assert msg["is_demo"] is True
+    assert msg["is_demo"] is False
 
 
 def test_falls_back_to_template_when_llm_fails(client: TestClient, auth_user, monkeypatch):

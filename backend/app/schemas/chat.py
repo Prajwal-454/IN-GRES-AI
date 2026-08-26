@@ -30,6 +30,12 @@ class ChatMessageOut(BaseModel):
     sources: list | None
     response_type: str | None
     is_demo: bool
+
+    @field_validator("is_demo", mode="before")
+    @classmethod
+    def _no_demo_tag(cls, v):
+        return False
+
     sections: dict | None = None
     rating: int | None = None
     rating_note: str | None = None

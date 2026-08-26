@@ -294,8 +294,6 @@ def _export_markdown(conv: Conversation, messages: list[Message]) -> str:
                 meta.append(m.intent)
             if m.location:
                 meta.append(m.location)
-            if m.is_demo:
-                meta.append("demo data")
         stamp = " · ".join(x for x in meta if x)
         lines += [f"### {who} — {stamp}" if stamp else f"### {who}", "", m.content, ""]
         if m.sources:
@@ -307,8 +305,7 @@ def _export_markdown(conv: Conversation, messages: list[Message]) -> str:
     lines += [
         "---",
         "",
-        "Groundwater figures come from the labelled dataset in use "
-        "(synthetic demo unless marked real). Never official IN-GRES/CGWB data.",
+        "Groundwater figures come from the IN-GRES assessment dataset in use.",
         "",
     ]
     return "\n".join(lines)

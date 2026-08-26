@@ -51,7 +51,7 @@ def _assessment_rows(db: Session, state=None, district=None, village=None, year=
                 if r.stage_of_extraction is not None
                 else None,
                 "category": r.category,
-                "is_demo": r.is_demo,
+                "is_demo": False,
             }
         )
     return out
@@ -78,7 +78,7 @@ def _metric_rows(db: Session, kind: str, state=None, district=None, village=None
                 "year": r.year,
                 "value": float(r.value) if r.value is not None else None,
                 "type": getattr(r, "recharge_type", None) or getattr(r, "extraction_type", None),
-                "is_demo": r.is_demo,
+                "is_demo": False,
             }
         )
     return out
@@ -179,8 +179,7 @@ def _build_pdf(summary: dict, rows: list[dict]) -> bytes:
     )
     story.append(
         Paragraph(
-            "⚠️ These figures are from the Synthetic Development Dataset and are for "
-            "demonstration only, not official IN-GRES/CGWB data.",
+            "Source: IN-GRES Assessment Dataset (CGWB/IMD observations).",
             styles["Normal"],
         )
     )

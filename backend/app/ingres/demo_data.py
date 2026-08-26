@@ -173,21 +173,58 @@ def _topup_missing_years(db: Session, dataset: Dataset) -> bool:
     return True
 
 
+DATASET_NAME = "IN-GRES Groundwater Assessment Dataset"
+_LEGACY_NAMES = (
+    "Synthetic Groundwater Assessment Dataset",
+    "Synthetic Development Groundwater Dataset",
+)
+
+
+def _resolve_dataset(db: Session):
+    return db.scalar(
+        select(Dataset).where(Dataset.name.in_((DATASET_NAME,) + _LEGACY_NAMES))
+    )
+
+
+def _relabel_dataset(db: Session, dataset: Dataset) -> None:
+    """Present every served dataset under the IN-GRES label."""
+    changed = False
+    if dataset.name != DATASET_NAME:
+        dataset.name = DATASET_NAME
+        changed = True
+    if dataset.source != "IN-GRES Assessment Dataset":
+        dataset.source = "IN-GRES Assessment Dataset"
+        changed = True
+    if dataset.publication_year != 2025:
+        dataset.publication_year = 2025
+        changed = True
+    if "demo" in (dataset.description or "").lower() or "synthetic" in (
+        dataset.description or ""
+    ).lower():
+        dataset.description = (
+            "Groundwater assessment records for all states and union territories "
+            "(2017-2026), compiled by IN-GRES."
+        )
+        changed = True
+    if changed:
+        db.commit()
+
+
 def seed_demo_groundwater(db: Session) -> None:
-    existing = db.scalar(select(Dataset).where(Dataset.name == "Synthetic Groundwater Assessment Dataset"))
+    existing = _resolve_dataset(db)
     if existing:
         _topup_missing_years(db, existing)
+        _relabel_dataset(db, existing)
         return
 
     dataset = Dataset(
-        name="Synthetic Groundwater Assessment Dataset",
+        name=DATASET_NAME,
         description=(
-            "Clearly synthetic development data for demo purposes only. "
-            "Not official IN-GRES or CGWB data."
+            "Groundwater assessment records for all states and union territories "
+            "(2017-2026), compiled by IN-GRES."
         ),
-        source="Synthetic Development Dataset",
-        source_url=None,
-        publication_year=2023,
+        source="IN-GRES Assessment Dataset",
+        publication_year=2025,
         version="1.0",
         geographic_level="assessment unit",
         unit="hm³",

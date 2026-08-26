@@ -300,7 +300,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>{t("Explore groundwater data")}</CardTitle>
             <CardDescription>
-              {t("Analytics, maps and reports across the demo states.")}
+              {t("Analytics, maps and reports across India.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

@@ -23,7 +23,7 @@ def test_send_data_query(client: TestClient, auth_user):
     assert resp.status_code == 201, resp.text
     body = resp.json()
     assert body["assistant_message"]["content"]
-    assert body["assistant_message"]["is_demo"] is True
+    assert body["assistant_message"]["is_demo"] is False
     assert "latency_ms" in body
 
 
