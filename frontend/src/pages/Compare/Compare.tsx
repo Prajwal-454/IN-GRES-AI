@@ -274,9 +274,6 @@ export default function Compare() {
             {t("Compare states, districts, villages or river basins side-by-side.")}
           </p>
         </div>
-        {scopes.some((s) => s.summary?.is_demo) && (
-          <Badge variant="warning">{t("Synthetic demo data")}</Badge>
-        )}
       </section>
 
       <Card>

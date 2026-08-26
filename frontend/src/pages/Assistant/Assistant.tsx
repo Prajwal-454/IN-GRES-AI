@@ -1375,11 +1375,6 @@ export default function Assistant() {
                             {t(INTENT_LABELS[m.intent] ?? m.intent)}
                           </Badge>
                         )}
-                        {m.is_demo && (
-                          <Badge variant="warning" className="text-[10px]">
-                            {t("demo_data")}
-                          </Badge>
-                        )}
                         {latencies[m.id] != null && (
                           <Badge variant="outline" className="text-[10px]">
                             {latencies[m.id]} ms

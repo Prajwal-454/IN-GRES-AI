@@ -125,9 +125,6 @@ export default function Dashboard() {
         </p>
       </section>
 
-      {summary?.is_demo && (
-        <Badge variant="warning">{t("Demo data · {source}", { source: summary.source })}</Badge>
-      )}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

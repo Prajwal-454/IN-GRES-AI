@@ -187,7 +187,7 @@ function popupHtml(feature: MapFeature, t: Translate, compare = false): string {
   if (p.is_demo) {
     rows.push(
       `<div style="color:#b45309;font-size:11px;margin-top:2px;">${escapeHtml(
-        t("Synthetic demo data")
+        t("IN-GRES Assessment Dataset")
       )}</div>`
     );
   }
@@ -203,7 +203,7 @@ function statePopupHtml(feature: IndiaFeature, t: Translate, compare = false): s
   if (!p.has_data) {
     rows.push(
       `<div style="color:#6b7280;font-size:12px;margin-top:4px;">${escapeHtml(
-        t("No assessment data in demo dataset")
+        t("No assessment data for this location")
       )}</div>`
     );
     return rows.join("");
@@ -250,7 +250,7 @@ function statePopupHtml(feature: IndiaFeature, t: Translate, compare = false): s
   if (p.is_demo) {
     rows.push(
       `<div style="color:#b45309;font-size:11px;margin-top:2px;">${escapeHtml(
-        t("Synthetic demo data")
+        t("IN-GRES Assessment Dataset")
       )}</div>`
     );
   }

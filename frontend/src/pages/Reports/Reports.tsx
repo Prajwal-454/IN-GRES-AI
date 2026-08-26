@@ -1,6 +1,5 @@
 import { Download, FileDown, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -141,7 +140,6 @@ export default function Reports() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {summary?.is_demo && <Badge variant="warning">{t("demo_data")}</Badge>}
           <div className="flex overflow-hidden rounded-md border">
             <button
               type="button"

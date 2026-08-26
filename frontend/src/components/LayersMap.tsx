@@ -205,7 +205,7 @@ function analysisHtml(a: LocationAnalysis, t: Translate): string {
   }
   rows.push(
     `<div style="color:#b45309;font-size:11px;margin-top:4px;">${escapeHtml(
-      t("Synthetic demo data")
+      t("IN-GRES Assessment Dataset")
     )}</div>`
   );
   return rows.join("");

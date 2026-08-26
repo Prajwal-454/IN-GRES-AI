@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import GoogleMapView from "@/components/GoogleMapView";
 import LayersMap, { RAMP_CSS, type ActiveLayer } from "@/components/LayersMap";
 import LeafletMap from "@/components/LeafletMap";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -328,7 +327,6 @@ export default function GIS() {
             )}
           </p>
         </div>
-        <Badge variant="warning">{t("demo_data")}</Badge>
       </section>
 
       <Card>

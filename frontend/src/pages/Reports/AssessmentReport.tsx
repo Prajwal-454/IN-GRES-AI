@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import ForecastChart from "@/components/ForecastChart";
 import LineChart from "@/components/LineChart";
 import ReportMap from "@/components/ReportMap";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -237,7 +236,6 @@ export default function AssessmentReport() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold">{report.scope.display}</h3>
-              {report.is_demo && <Badge variant="warning">{t("demo_data")}</Badge>}
             </div>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={handleDownloadXlsx} disabled={busy}>

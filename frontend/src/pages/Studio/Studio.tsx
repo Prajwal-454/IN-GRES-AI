@@ -279,9 +279,6 @@ export default function Studio() {
             )}
           </p>
         </div>
-        {result?.baseline.is_demo && (
-          <Badge variant="warning">{t("Statistical estimate · demo data")}</Badge>
-        )}
       </section>
 
       <Card>

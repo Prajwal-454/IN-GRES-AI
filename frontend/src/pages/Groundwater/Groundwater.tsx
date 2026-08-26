@@ -238,11 +238,6 @@ export default function Groundwater() {
             {t("See the water situation for any state, district or village.")}
           </p>
         </div>
-        {summary?.is_demo && (
-          <Badge variant="warning">
-            {t("Demo data · {source}", { source: summary.source })}
-          </Badge>
-        )}
       </section>
 
       <Card>
