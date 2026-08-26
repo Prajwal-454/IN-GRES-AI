@@ -51,7 +51,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Overexploited: "#dc2626",
 };
 
-const YEAR_OPTIONS = [2017, 2018, 2019, 2020, 2021, 2022];
+const YEAR_OPTIONS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 
 function formatNumber(value: number | null | undefined, digits = 1): string {
   if (value === null || value === undefined) return "—";

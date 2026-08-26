@@ -40,7 +40,7 @@ function formatNumber(value: number | null | undefined, digits = 1): string {
   return new Intl.NumberFormat("en-IN", { maximumFractionDigits: digits }).format(value);
 }
 
-const YEAR_OPTIONS = [2017, 2018, 2019, 2020, 2021, 2022];
+const YEAR_OPTIONS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 
 export default function Reports() {
   const { t } = useLanguage();

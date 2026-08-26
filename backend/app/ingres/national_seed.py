@@ -68,6 +68,96 @@ def _tune_for_bulk(db: Session) -> None:
     db.commit()
 
 
+def _topup_missing_years(db: Session, dataset_id: int) -> bool:
+    """Backfill assessment rows for DEMO_YEARS added after the national dataset
+    was first seeded (e.g. 2023-2026 on databases created earlier)."""
+    seeded = set(
+        db.scalars(
+            select(GroundwaterAssessment.assessment_year).where(
+                GroundwaterAssessment.dataset_id == dataset_id
+            )
+        ).all()
+    )
+    missing = [year for year in DEMO_YEARS if year not in seeded]
+    if not missing:
+        return False
+
+    rows = db.execute(
+        select(AssessmentUnit.id, Village.population, State.name)
+        .join(State, AssessmentUnit.state_id == State.id)
+        .outerjoin(Village, AssessmentUnit.village_id == Village.id)
+        .where(AssessmentUnit.is_demo == True)  # noqa: E712
+    ).all()
+
+    assessments: list[dict] = []
+    recharges: list[dict] = []
+    extractions: list[dict] = []
+    for unit_id, population, state_name in rows:
+        info = state_info(state_name)
+        if info is None or info["profile"] not in _STAGE_LOW:
+            continue
+        low = _STAGE_LOW[info["profile"]]
+        high = _STAGE_HIGH[info["profile"]]
+
+        for year in missing:
+            rng = random_for(f"topup:{unit_id}:{year}")
+            year_idx = DEMO_YEARS.index(year)
+            base_stage = rng.uniform(low, high)
+            drought = -10 if year in DROUGHT_YEARS else 0
+            growth = year_idx * 1.2
+            stage = max(25.0, min(140.0, base_stage + drought + growth + rng.uniform(-6, 6)))
+
+            pop_factor = max(0.25, min(3.0, (population or 1500) / 1500))
+            recharge_total = round(rng.uniform(0.8, 7.0) * pop_factor * (0.9 if year in DROUGHT_YEARS else 1.0), 3)
+            annual_extractable = round(recharge_total * rng.uniform(0.82, 0.95), 3)
+            extraction_total = round(annual_extractable * (stage / 100), 3)
+
+            assessments.append(
+                {
+                    "assessment_unit_id": unit_id,
+                    "dataset_id": dataset_id,
+                    "assessment_year": year,
+                    "recharge_total": Decimal(str(recharge_total)),
+                    "extraction_total": Decimal(str(extraction_total)),
+                    "annual_extractable_resource": Decimal(str(annual_extractable)),
+                    "stage_of_extraction": Decimal(str(round(stage, 2))),
+                    "category": _category_for_stage(stage),
+                    "is_demo": True,
+                }
+            )
+            recharges.append(
+                {
+                    "assessment_unit_id": unit_id,
+                    "dataset_id": dataset_id,
+                    "year": year,
+                    "recharge_type": "total",
+                    "value": Decimal(str(recharge_total)),
+                    "is_demo": True,
+                }
+            )
+            extractions.append(
+                {
+                    "assessment_unit_id": unit_id,
+                    "dataset_id": dataset_id,
+                    "year": year,
+                    "extraction_type": "total",
+                    "value": Decimal(str(extraction_total)),
+                    "is_demo": True,
+                }
+            )
+
+    _tune_for_bulk(db)
+    for start in range(0, len(assessments), _BATCH):
+        end = start + _BATCH
+        _insert_many(db, GroundwaterAssessment, assessments[start:end])
+        _insert_many(db, GroundwaterRecharge, recharges[start:end])
+        _insert_many(db, GroundwaterExtraction, extractions[start:end])
+        db.commit()
+    invalidate_analytics_cache()
+    print(f"Backfilled national dataset with years: {missing}")
+    return True
+
+
 def _village_assessment_rows(
     unit_ids: list[int],
     names: list[str],
@@ -152,6 +242,7 @@ def seed_national_groundwater(
     """Seed the full national demo dataset. Returns summary counters."""
     existing = db.scalar(select(Dataset).where(Dataset.name == NATIONAL_DATASET_NAME))
     if existing:
+        _topup_missing_years(db, existing.id)
         return {"skipped": True, "dataset_id": existing.id}
 
     _tune_for_bulk(db)

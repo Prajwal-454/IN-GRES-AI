@@ -24,7 +24,7 @@ import {
 } from "@/services/reports";
 import type { GroundwaterDistrict, GroundwaterState } from "@/types";
 
-const FROM_YEARS = [2017, 2018, 2019, 2020, 2021, 2022];
+const FROM_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 const TO_YEARS = [2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035];
 
 const CATEGORY_COLORS: Record<string, string> = {

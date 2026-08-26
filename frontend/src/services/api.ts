@@ -67,7 +67,8 @@ api.interceptors.response.use(
       localStorage.removeItem("ingres_refresh_token");
       if (
         typeof window !== "undefined" &&
-        !window.location.pathname.startsWith("/login")
+        !window.location.pathname.startsWith("/login") &&
+        !window.location.pathname.startsWith("/register")
       ) {
         window.location.href = "/login";
       }

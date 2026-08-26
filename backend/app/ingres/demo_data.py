@@ -57,7 +57,7 @@ DEMO_STATES: dict[str, dict] = {
     },
 }
 
-DEMO_YEARS = [2017, 2018, 2019, 2020, 2021, 2022]
+DEMO_YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
 
 BASE_STAGE: dict[str, tuple[float, float]] = {
     "wet": (52.0, 78.0),
@@ -90,9 +90,93 @@ def _category_for_stage(stage: float) -> str:
     return "over-exploited"
 
 
+def _district_profiles() -> dict[str, str]:
+    profiles: dict[str, str] = {}
+    for info in DEMO_STATES.values():
+        for district_name, (_lat, _lon, profile) in info["districts"].items():
+            profiles[district_name] = profile
+    return profiles
+
+
+def _topup_missing_years(db: Session, dataset: Dataset) -> bool:
+    """Backfill assessment rows for DEMO_YEARS added after the dataset was
+    first seeded (e.g. 2023-2026 on databases created earlier)."""
+    seeded = set(
+        db.scalars(
+            select(GroundwaterAssessment.assessment_year).where(
+                GroundwaterAssessment.dataset_id == dataset.id
+            )
+        ).all()
+    )
+    missing = [year for year in DEMO_YEARS if year not in seeded]
+    if not missing:
+        return False
+
+    profiles = _district_profiles()
+    profile_by_district = {
+        d_id: profiles.get(d_name, "normal")
+        for d_id, d_name in db.execute(select(District.id, District.name)).all()
+    }
+    units = db.scalars(select(AssessmentUnit).where(AssessmentUnit.is_demo.is_(True))).all()
+    rng = random.Random(1234)
+
+    for unit in units:
+        low, high = BASE_STAGE[profile_by_district.get(unit.district_id or 0, "normal")]
+        for year in missing:
+            year_idx = DEMO_YEARS.index(year)
+            base_stage = rng.uniform(low, high)
+            drought = -12 if year in DROUGHT_YEARS else 0
+            growth = year_idx * 1.5
+            stage = max(25.0, min(140.0, base_stage + drought + growth + rng.uniform(-6, 6)))
+
+            recharge_total = round(rng.uniform(90, 260) * (0.9 if year in DROUGHT_YEARS else 1.0), 2)
+            annual_extractable = round(recharge_total * rng.uniform(0.85, 0.95), 2)
+            extraction_total = round(annual_extractable * (stage / 100), 2)
+
+            db.add(
+                GroundwaterAssessment(
+                    assessment_unit_id=unit.id,
+                    dataset_id=dataset.id,
+                    assessment_year=year,
+                    recharge_total=Decimal(str(recharge_total)),
+                    extraction_total=Decimal(str(extraction_total)),
+                    annual_extractable_resource=Decimal(str(annual_extractable)),
+                    stage_of_extraction=Decimal(str(round(stage, 2))),
+                    category=_category_for_stage(stage),
+                    is_demo=True,
+                )
+            )
+            db.add(
+                GroundwaterRecharge(
+                    assessment_unit_id=unit.id,
+                    dataset_id=dataset.id,
+                    year=year,
+                    recharge_type="total",
+                    value=Decimal(str(recharge_total)),
+                    is_demo=True,
+                )
+            )
+            db.add(
+                GroundwaterExtraction(
+                    assessment_unit_id=unit.id,
+                    dataset_id=dataset.id,
+                    year=year,
+                    extraction_type="total",
+                    value=Decimal(str(extraction_total)),
+                    is_demo=True,
+                )
+            )
+
+    db.commit()
+    invalidate_analytics_cache()
+    print(f"Backfilled demo dataset with years: {missing}")
+    return True
+
+
 def seed_demo_groundwater(db: Session) -> None:
     existing = db.scalar(select(Dataset).where(Dataset.name == "Synthetic Groundwater Assessment Dataset"))
     if existing:
+        _topup_missing_years(db, existing)
         return
 
     dataset = Dataset(

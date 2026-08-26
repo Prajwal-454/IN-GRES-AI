@@ -193,7 +193,7 @@ def build_assessment_report(
         "recommendations": recommendations,
         "sources": [
             DEMO_SOURCE,
-            "Assessment records: state, district, assessment unit, year, recharge, extraction, annual extractable resource, stage of extraction and category (2017-2022).",
+            "Assessment records: state, district, assessment unit, year, recharge, extraction, annual extractable resource, stage of extraction and category (2017-2026).",
             f"Prediction: linear regression on the yearly stage-of-extraction series with a 95% confidence band (model: {fc.get('method_label', 'auto')}).",
             "Category thresholds: Safe <70%, Semi-critical 70-90%, Critical 90-100%, Over-exploited >=100%.",
             "Water level is derived illustratively (depth in m = 1.2 + stage/100 x 10); the demo dataset has no measured groundwater levels.",

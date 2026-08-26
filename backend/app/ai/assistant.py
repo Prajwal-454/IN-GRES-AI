@@ -287,8 +287,8 @@ def extract_horizon(text: str) -> int:
         if m.group(3):
             by = int(m.group(3))
             latest = max(
-                [2022]
-                + [int(t) for t in _YEAR_RE.findall(text) if int(t) <= 2022 and int(t) >= 2017]
+                [2026]
+                + [int(t) for t in _YEAR_RE.findall(text) if int(t) <= 2026 and int(t) >= 2017]
             )
             return max(1, min(by - latest, 10))
         raw = m.group(1) or m.group(2)
@@ -529,7 +529,7 @@ def extract_metric(text: str) -> str | None:
 def extract_year(text: str) -> int | None:
     for token in _YEAR_RE.findall(text):
         year = int(token)
-        if 2017 <= year <= 2022:
+        if 2017 <= year <= 2026:
             return year
     return None
 

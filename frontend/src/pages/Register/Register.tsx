@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { RefreshCw, Waves } from "lucide-react";
+import { CheckCircle2, RefreshCw, Waves, XCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -117,6 +117,18 @@ export default function Register() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
+                {confirmPassword.length > 0 &&
+                  (password === confirmPassword ? (
+                    <p className="flex items-center gap-1.5 rounded-md border border-green-500/40 bg-green-500/10 px-2.5 py-1.5 text-sm font-medium text-green-600 dark:text-green-400">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      {t("Passwords match")}
+                    </p>
+                  ) : (
+                    <p className="flex items-center gap-1.5 text-sm text-destructive">
+                      <XCircle className="h-4 w-4 shrink-0" />
+                      {t("Passwords do not match")}
+                    </p>
+                  ))}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="captcha">{t("Security check")}</Label>

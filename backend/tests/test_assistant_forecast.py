@@ -65,7 +65,7 @@ def test_extract_horizon():
     assert extract_horizon("next 5 years") == 5
     assert extract_horizon("next 3 years") == 3
     assert extract_horizon("over the next 2 years") == 2
-    assert extract_horizon("by 2030") == 8
+    assert extract_horizon("by 2030") == 4
     assert extract_horizon("what is the trend?") == 5
 
 
