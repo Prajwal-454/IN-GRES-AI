@@ -1,4 +1,4 @@
-import { Droplets, Filter, Loader2, MapPin, RefreshCw, Waves } from "lucide-react";
+import { Droplets, Filter, MapPin, RefreshCw, Waves } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import BarChart from "@/components/BarChart";
@@ -14,8 +14,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import IngresLoader from "@/components/IngresLoader";
+import IngresNetworkError from "@/components/IngresNetworkError";
 import { Select } from "@/components/ui/select";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getApiError, isNetworkError } from "@/services/api";
 import {
   Table,
   TableBody,
@@ -92,6 +95,7 @@ export default function Groundwater() {
   const [extractionByYear, setExtractionByYear] = useState<{ label: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<unknown>(null);
 
   const filters = useMemo(
     () => ({
@@ -157,6 +161,7 @@ export default function Groundwater() {
     let active = true;
     setLoading(true);
     setError(null);
+    setLastError(null);
 
     function aggregate(rows: { year: number; value: number | null }[]) {
       const byYear = new Map<number, number>();
@@ -184,11 +189,8 @@ export default function Groundwater() {
       })
       .catch((err) => {
         if (!active) return;
-        setError(
-          typeof err === "object" && err !== null && "message" in err
-            ? String((err as { message: string }).message)
-            : t("Failed to load groundwater data.")
-        );
+        setLastError(err);
+        setError(getApiError(err));
       })
       .finally(() => active && setLoading(false));
 
@@ -324,17 +326,21 @@ export default function Groundwater() {
         </CardContent>
       </Card>
 
-      {error && (
+      {error && isNetworkError(lastError) ? (
+        <IngresNetworkError detail={error} onRetry={() => window.location.reload()} />
+      ) : error ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           {error}
         </div>
-      )}
+      ) : null}
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          {t("Loading groundwater data…")}
-        </div>
+        <IngresLoader
+          variant="inline"
+          size="sm"
+          message={t("Loading groundwater data…")}
+          submessage="Fetching IN-GRES assessment data"
+        />
       ) : (
         <>
           <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -79,9 +79,27 @@ api.interceptors.response.use(
 
 export function getApiError(error: unknown): string {
   if (axios.isAxiosError(error)) {
+    // Network / offline — no response from server (Render cold start, no internet, CORS)
+    if (!error.response) {
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        return "You’re offline. Check your internet connection and try again.";
+      }
+      if (error.code === "ERR_NETWORK" || error.message === "Network Error") {
+        return "Cannot reach IN-GRES AI servers. The backend may be waking up — please retry in a few seconds.";
+      }
+      return error.message || "Network error. Please check your connection and try again.";
+    }
     const detail = error.response?.data?.detail;
     if (typeof detail === "string") return detail;
     if (Array.isArray(detail)) return detail.map((d) => d.msg).join(", ");
   }
   return "Something went wrong. Please try again.";
+}
+
+export function isNetworkError(error: unknown): boolean {
+  if (axios.isAxiosError(error)) {
+    if (!error.response) return true;
+  }
+  if (error instanceof TypeError && error.message === "Failed to fetch") return true;
+  return false;
 }

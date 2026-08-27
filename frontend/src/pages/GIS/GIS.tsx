@@ -1,10 +1,13 @@
-import { CheckSquare, Info, Loader2, Map as MapIcon, Square } from "lucide-react";
+import { CheckSquare, Info, Map as MapIcon, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import GoogleMapView from "@/components/GoogleMapView";
+import IngresLoader from "@/components/IngresLoader";
+import IngresNetworkError from "@/components/IngresNetworkError";
 import LayersMap, { RAMP_CSS, type ActiveLayer } from "@/components/LayersMap";
 import LeafletMap from "@/components/LeafletMap";
 import { Button } from "@/components/ui/button";
+import { getApiError, isNetworkError } from "@/services/api";
 import {
   Card,
   CardContent,
@@ -77,6 +80,7 @@ export default function GIS() {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<unknown>(null);
   const [activeLayer, setActiveLayer] = useState<ActiveLayer>("waterlevel");
   const [stationsOn, setStationsOn] = useState(false);
   const [stations, setStations] = useState<Station[]>([]);
@@ -137,6 +141,7 @@ export default function GIS() {
     let active = true;
     setLoading(true);
     setError(null);
+    setLastError(null);
     if (compareMode) {
       const params = {
         metric,
@@ -158,7 +163,11 @@ export default function GIS() {
           if (view === "india") setIndiaCompare(d as IndiaCompareData);
           else setCompareData(d as CompareData);
         })
-        .catch(() => active && setError(t("Failed to load map data.")))
+        .catch((err) => {
+          if (!active) return;
+          setLastError(err);
+          setError(getApiError(err));
+        })
         .finally(() => active && setLoading(false));
       return () => {
         active = false;
@@ -185,7 +194,11 @@ export default function GIS() {
         else if (view === "india") setIndia(d as IndiaMapData);
         else setData(d as MapData);
       })
-      .catch(() => active && setError(t("Failed to load map data.")))
+      .catch((err) => {
+        if (!active) return;
+        setLastError(err);
+        setError(getApiError(err));
+      })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
@@ -565,17 +578,21 @@ export default function GIS() {
         </Card>
       )}
 
-      {error && (
+      {error && isNetworkError(lastError) ? (
+        <IngresNetworkError detail={error} onRetry={() => window.location.reload()} />
+      ) : error ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           {error}
         </div>
-      )}
+      ) : null}
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          {t("loading")}
-        </div>
+        <IngresLoader
+          variant="inline"
+          size="sm"
+          message={t("loading")}
+          submessage="Loading IN-GRES map data"
+        />
       ) : compareMode ? (
         compareData || indiaCompare ? (
           <>

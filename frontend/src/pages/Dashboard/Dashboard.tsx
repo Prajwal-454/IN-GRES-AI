@@ -28,10 +28,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import IngresLoader from "@/components/IngresLoader";
+import IngresNetworkError from "@/components/IngresNetworkError";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getInsights, getTrends, type Insight } from "@/services/analytics";
 import { fetchSummary, fetchStates } from "@/services/groundwater";
+import { getApiError, isNetworkError } from "@/services/api";
 import type { GroundwaterSummary, GroundwaterState } from "@/types";
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -61,6 +64,8 @@ export default function Dashboard() {
   const [trends, setTrends] = useState<{ label: string; value: number }[]>([]);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<unknown>(null);
 
   useEffect(() => {
     let active = true;
@@ -79,7 +84,11 @@ export default function Dashboard() {
         );
         setInsights(insightData.insights);
       })
-      .catch(() => undefined)
+      .catch((err) => {
+        if (!active) return;
+        setLastError(err);
+        setError(getApiError(err));
+      })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
@@ -124,6 +133,23 @@ export default function Dashboard() {
           {t("A quick picture of the groundwater near you.")}
         </p>
       </section>
+
+      {error && isNetworkError(lastError) && (
+        <IngresNetworkError detail={error} onRetry={() => window.location.reload()} />
+      )}
+      {error && !isNetworkError(lastError) && (
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      {loading && (
+        <IngresLoader
+          variant="inline"
+          size="sm"
+          message={t("loading")}
+          submessage="Loading dashboard insights"
+        />
+      )}
 
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

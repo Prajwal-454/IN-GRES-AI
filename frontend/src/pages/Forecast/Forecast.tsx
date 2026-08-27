@@ -4,13 +4,15 @@ import {
   BrainCircuit,
   CheckCircle2,
   Cpu,
-  Loader2,
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import ForecastChart from "@/components/ForecastChart";
+import IngresLoader from "@/components/IngresLoader";
+import IngresNetworkError from "@/components/IngresNetworkError";
 import { Badge } from "@/components/ui/badge";
+import { getApiError, isNetworkError } from "@/services/api";
 import {
   Card,
   CardContent,
@@ -106,6 +108,7 @@ export default function Forecast() {
   const [backtest, setBacktest] = useState<Awaited<ReturnType<typeof fetchBacktest>> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<unknown>(null);
 
   const mlAvailable = meta?.ml_available ?? false;
 
@@ -192,17 +195,15 @@ export default function Forecast() {
     let active = true;
     setLoading(true);
     setError(null);
+    setLastError(null);
     fetchForecast(filters)
       .then((data) => {
         if (active) setResult(data);
       })
       .catch((err) => {
         if (!active) return;
-        setError(
-          typeof err === "object" && err !== null && "message" in err
-            ? String((err as { message: string }).message)
-            : t("Failed to load the forecast.")
-        );
+        setLastError(err);
+        setError(getApiError(err));
       })
       .finally(() => active && setLoading(false));
     return () => {
@@ -433,17 +434,21 @@ export default function Forecast() {
         )}
       </Card>
 
-      {error && (
+      {error && isNetworkError(lastError) ? (
+        <IngresNetworkError detail={error} onRetry={() => window.location.reload()} />
+      ) : error ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           {error}
         </div>
-      )}
+      ) : null}
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          {t("Loading forecast…")}
-        </div>
+        <IngresLoader
+          variant="inline"
+          size="sm"
+          message={t("Loading forecast…")}
+          submessage="Projecting groundwater metrics"
+        />
       ) : result ? (
         <>
           <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
