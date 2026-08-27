@@ -1,7 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "echo prebuilt-locally",
-  "outputDirectory": "dist",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
