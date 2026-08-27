@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import AppShell from "@/components/AppShell";
+import IngresLoader from "@/components/IngresLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Toaster from "@/components/Toaster";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -28,17 +29,12 @@ const Weather = lazy(() => import("@/pages/Weather"));
 
 function PageFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-      <svg
-        className="h-8 w-8 animate-spin text-primary"
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
-        <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="3" />
-      </svg>
-    </div>
+    <IngresLoader
+      variant="page"
+      size="md"
+      message="Loading IN-GRES AI…"
+      submessage="Preparing your groundwater intelligence workspace"
+    />
   );
 }
 

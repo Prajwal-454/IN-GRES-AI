@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
+import IngresLoader from "@/components/IngresLoader";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProtectedRoute() {
@@ -8,9 +9,12 @@ export default function ProtectedRoute() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-sm text-muted-foreground">Loading…</div>
-      </div>
+      <IngresLoader
+        variant="page"
+        size="md"
+        message="Authenticating…"
+        submessage="Securing your IN-GRES AI session"
+      />
     );
   }
 
