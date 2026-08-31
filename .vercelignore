@@ -1,0 +1,11 @@
+backend/
+frontend/node_modules/
+frontend/dist/
+frontend/dev-dist/
+states/
+knowledge/
+data/
+tests/
+.git/
+*.log
+*.pptx
