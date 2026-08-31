@@ -693,32 +693,34 @@ export default function GIS() {
             </Button>
           </>
         ) : null
-      ) : data || india || basinData ? (
+      ) : (
         <>
-          <section className="grid gap-4 sm:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardDescription>{view === "basins" ? t("basins") : t("units")}</CardDescription>
-                <CardTitle className="text-3xl">{units}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardDescription>{t("Avg stage of extraction")}</CardDescription>
-                <CardTitle className="text-3xl">
-                  {avgStage ? `${avgStage.toFixed(1)}%` : "—"}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardDescription>
-                  {view === "basins" ? t("Over-exploited basins") : t("Over-exploited units")}
-                </CardDescription>
-                <CardTitle className="text-3xl text-destructive">{overExploited}</CardTitle>
-              </CardHeader>
-            </Card>
-          </section>
+          {(data || india || basinData) && (
+            <section className="grid gap-4 sm:grid-cols-3">
+              <Card>
+                <CardHeader>
+                  <CardDescription>{view === "basins" ? t("basins") : t("units")}</CardDescription>
+                  <CardTitle className="text-3xl">{units}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardDescription>{t("Avg stage of extraction")}</CardDescription>
+                  <CardTitle className="text-3xl">
+                    {avgStage ? `${avgStage.toFixed(1)}%` : "—"}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardDescription>
+                    {view === "basins" ? t("Over-exploited basins") : t("Over-exploited units")}
+                  </CardDescription>
+                  <CardTitle className="text-3xl text-destructive">{overExploited}</CardTitle>
+                </CardHeader>
+              </Card>
+            </section>
+          )}
 
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
@@ -731,7 +733,7 @@ export default function GIS() {
                       : t(LAYER_DEFS.find((l) => l.key === activeLayer)?.label ?? "Groundwater Level")}
                 </CardTitle>
                 <CardDescription>
-                  {(data?.meta.year ?? india?.meta.year ?? basinData?.meta.year)} ·{" "}
+                  {(data?.meta.year ?? india?.meta.year ?? basinData?.meta.year) ?? ""} ·{" "}
                   {view === "india"
                     ? t("36 states & UTs")
                     : view === "basins"
@@ -802,7 +804,7 @@ export default function GIS() {
             {t("Reset map")}
           </Button>
         </>
-      ) : null}
+      )}
     </div>
   );
 }
