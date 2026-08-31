@@ -9,23 +9,23 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 
-const Admin = lazy(() => import("@/pages/Admin"));
-const Assistant = lazy(() => import("@/pages/Assistant"));
-const Compare = lazy(() => import("@/pages/Compare"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Expert = lazy(() => import("@/pages/Expert"));
-const Forecast = lazy(() => import("@/pages/Forecast"));
-const GIS = lazy(() => import("@/pages/GIS"));
-const Groundwater = lazy(() => import("@/pages/Groundwater"));
-const History = lazy(() => import("@/pages/History"));
-const Knowledge = lazy(() => import("@/pages/Knowledge"));
-const Landing = lazy(() => import("@/pages/Landing"));
-const Login = lazy(() => import("@/pages/Login"));
-const Notifications = lazy(() => import("@/pages/Notifications"));
-const Register = lazy(() => import("@/pages/Register"));
-const Reports = lazy(() => import("@/pages/Reports"));
-const Studio = lazy(() => import("@/pages/Studio"));
-const Weather = lazy(() => import("@/pages/Weather"));
+const Admin = lazy(() => import("@/pages/Admin/Admin.tsx"));
+const Assistant = lazy(() => import("@/pages/Assistant/Assistant.tsx"));
+const Compare = lazy(() => import("@/pages/Compare/Compare.tsx"));
+const Dashboard = lazy(() => import("@/pages/Dashboard/Dashboard.tsx"));
+const Expert = lazy(() => import("@/pages/Expert/Expert.tsx"));
+const Forecast = lazy(() => import("@/pages/Forecast/Forecast.tsx"));
+const GIS = lazy(() => import("@/pages/GIS/GIS.tsx"));
+const Groundwater = lazy(() => import("@/pages/Groundwater/Groundwater.tsx"));
+const History = lazy(() => import("@/pages/History/History.tsx"));
+const Knowledge = lazy(() => import("@/pages/Knowledge/Knowledge.tsx"));
+const Landing = lazy(() => import("@/pages/Landing/Landing.tsx"));
+const Login = lazy(() => import("@/pages/Login/Login.tsx"));
+const Notifications = lazy(() => import("@/pages/Notifications/Notifications.tsx"));
+const Register = lazy(() => import("@/pages/Register/Register.tsx"));
+const Reports = lazy(() => import("@/pages/Reports/Reports.tsx"));
+const Studio = lazy(() => import("@/pages/Studio/Studio.tsx"));
+const Weather = lazy(() => import("@/pages/Weather/Weather.tsx"));
 
 function PageFallback() {
   return (
