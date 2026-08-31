@@ -93,10 +93,10 @@ export default function GIS() {
             <p className="text-xs text-muted-foreground">{t("Predicted category")}</p>
           )}
           {[
-            ["safe", "#16a34a", "Safe (<70%)"],
-            ["semi-critical", "#ea580c", "Semi-critical (70–90%)"],
-            ["critical", "#dc2626", "Critical (90–100%)"],
-            ["over-exploited", "#991b1b", "Over-exploited (>100%)"],
+            ["safe", "#1a9850", "Safe (<70%)"],
+            ["semi-critical", "#fdae61", "Semi-critical (70–90%)"],
+            ["critical", "#f46d43", "Critical (90–100%)"],
+            ["over-exploited", "#d73027", "Over-exploited (>100%)"],
           ].map(([key, color, label]) => (
             <div key={key} className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: color }} />
@@ -663,7 +663,7 @@ export default function GIS() {
                     <span>{t("Worsened")}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#d1d5db" }} />
+                    <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#e5e7eb" }} />
                     <span className="text-muted-foreground">{t("No data available for this selection")}</span>
                   </div>
                   <div className="mt-4 flex gap-2 text-xs text-muted-foreground">
@@ -770,7 +770,7 @@ export default function GIS() {
                   <div className="flex items-center gap-2">
                     <span
                       className="h-3 w-3 rounded-sm"
-                      style={{ backgroundColor: "#d1d5db" }}
+                      style={{ backgroundColor: "#e5e7eb" }}
                     />
                     <span className="text-muted-foreground">
                       {t("No data available for this selection")}

@@ -19,31 +19,27 @@ const METRIC_LABELS: Record<string, string> = {
   extraction: "Extraction",
 };
 
-// Strong, high-contrast categorical colours — safe green reads as "healthy",
-// over-exploited red is unmistakable. All pass WCAG AA on white.
 const CATEGORY_COLORS: Record<string, string> = {
-  safe: "#16a34a",
-  "semi-critical": "#ea580c",
-  critical: "#dc2626",
-  "over-exploited": "#991b1b",
+  safe: "#1a9850",
+  "semi-critical": "#fdae61",
+  critical: "#f46d43",
+  "over-exploited": "#d73027",
 };
 
-const NO_DATA_COLOR = "#d1d5db";
+const NO_DATA_COLOR = "#e5e7eb";
 
-// 7-stop sequential ramp (YlOrRd inspired): deeper saturation, clearer
-// mid-range separation, unmistakable alarm at the high end.
+// Perceptually smooth 5-stop sequential ramp (RdYlBu-style, colourblind-safe
+// ordering): calm at low values, alarm only at the high end.
 const RAMP_STOPS: [number, number, number][] = [
-  [34, 104, 151],
-  [56, 161, 105],
-  [144, 190, 109],
-  [249, 191, 59],
-  [243, 135, 48],
-  [220, 68, 42],
-  [153, 20, 20],
+  [43, 131, 186],
+  [171, 217, 233],
+  [255, 255, 191],
+  [253, 174, 97],
+  [215, 25, 28],
 ];
 
 export const RAMP_CSS =
-  "linear-gradient(to right, rgb(34,104,151), rgb(56,161,105), rgb(144,190,109), rgb(249,191,59), rgb(243,135,48), rgb(220,68,42), rgb(153,20,20))";
+  "linear-gradient(to right, rgb(43,131,186), rgb(171,217,233), rgb(255,255,191), rgb(253,174,97), rgb(215,25,28))";
 
 function rampColor(t: number): string {
   const x = Math.min(Math.max(t, 0), 1) * (RAMP_STOPS.length - 1);
@@ -380,11 +376,11 @@ export default function LayersMap({
             active === "prediction" ? NO_DATA_COLOR : colorFor(props, active, min, max);
           return {
             fillColor: fill,
-            color: "#64748b",
-            weight: 1.2,
+            color: "#ffffff",
+            weight: 1,
             smoothFactor: 1,
             lineJoin: "round",
-            fillOpacity: hOn ? 0.28 : 0.82,
+            fillOpacity: hOn ? 0.25 : 0.78,
           };
         },
         onEachFeature: (feature, lyr) => {
@@ -393,65 +389,27 @@ export default function LayersMap({
           const stage = props.stage_of_extraction as number | null | undefined;
           const value = props.metric_value as number | null | undefined;
           const category = props.category as string | null | undefined;
-          const hasData = props.has_data as boolean | undefined;
-          const unitCount = props.unit_count as number | undefined;
-
-          const CATEGORY_BADGE: Record<string, { bg: string; fg: string; label: string }> = {
-            safe:             { bg: "#dcfce7", fg: "#15803d", label: "Safe" },
-            "semi-critical":  { bg: "#fff7ed", fg: "#c2410c", label: "Semi-critical" },
-            critical:         { bg: "#fef2f2", fg: "#dc2626", label: "Critical" },
-            "over-exploited": { bg: "#fef2f2", fg: "#991b1b", label: "Over-exploited" },
-          };
-
-          const badge = category ? CATEGORY_BADGE[category] : null;
-          const badgeHtml = badge
-            ? `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:${badge.bg};color:${badge.fg};margin-left:4px;">${escapeHtml(badge.label)}</span>`
-            : "";
-
-          const lines: string[] = [
-            `<div style="font-weight:700;font-size:13px;margin-bottom:3px;">${escapeHtml(name)}${badgeHtml}</div>`,
-          ];
-
+          const lines = [`<b>${escapeHtml(name)}</b>`];
           if (stage !== null && stage !== undefined) {
-            const stageNum = Number(stage);
-            let statusIcon = "";
-            if (stageNum >= 100) statusIcon = " <span style='color:#dc2626;'>&#9650;</span>";
-            else if (stageNum >= 90) statusIcon = " <span style='color:#ea580c;'>&#9650;</span>";
-            else if (stageNum >= 70) statusIcon = " <span style='color:#ca8a04;'>&#9679;</span>";
-            else statusIcon = " <span style='color:#16a34a;'>&#9660;</span>";
-            lines.push(
-              `<div style="font-size:12px;"><span style="color:#94a3b8;">Stage:</span> <b>${stageNum.toFixed(1)}%</b>${statusIcon}</div>`
-            );
+            lines.push(`${escapeHtml(t("Stage of extraction"))}: ${Number(stage).toFixed(1)}%`);
           }
-
           if (value !== null && value !== undefined) {
-            const metricLabel = t(METRIC_LABELS[active] ?? "Value");
             lines.push(
-              `<div style="font-size:12px;"><span style="color:#94a3b8;">${escapeHtml(metricLabel)}:</span> <b>${Number(value).toFixed(1)}</b></div>`
+              `${escapeHtml(t(METRIC_LABELS[active] ?? "Value"))}: ${Number(value).toFixed(1)}`
             );
           }
-
-          if (hasData === false) {
-            lines.push(`<div style="font-size:11px;color:#94a3b8;margin-top:2px;">No data available</div>`);
-          }
-
-          if (unitCount !== undefined && unitCount !== null) {
-            lines.push(
-              `<div style="font-size:11px;color:#64748b;margin-top:2px;">${unitCount} assessment unit${unitCount !== 1 ? "s" : ""}</div>`
-            );
-          }
-
-          lyr.bindTooltip(lines.join(""), {
+          if (category) lines.push(escapeHtml(category));
+          lyr.bindTooltip(lines.join("<br/>"), {
             sticky: true,
             className: "gw-tooltip",
-            opacity: 0.97,
+            opacity: 0.95,
           });
           lyr.on("mouseover", () => {
-            (lyr as L.Path).setStyle({ weight: 2.5, color: "#1e293b", fillOpacity: 0.9 });
+            (lyr as L.Path).setStyle({ weight: 2, color: "#334155", fillOpacity: 0.88 });
             (lyr as L.Path).bringToFront();
           });
           lyr.on("mouseout", () => {
-            (lyr as L.Path).setStyle({ weight: 1.2, color: "#64748b", fillOpacity: hOn ? 0.28 : 0.82 });
+            (lyr as L.Path).setStyle({ weight: 1, color: "#ffffff", fillOpacity: hOn ? 0.25 : 0.78 });
           });
         },
       }).addTo(layer);
@@ -471,10 +429,10 @@ export default function LayersMap({
             min,
             max
           ),
-          color: "#475569",
-          weight: 1.2,
-          dashArray: "4 5",
-          fillOpacity: 0.65,
+          color: "#94a3b8",
+          weight: 1,
+          dashArray: "3 4",
+          fillOpacity: 0.6,
         }),
       }).addTo(layer);
       geo.eachLayer((l) => {
