@@ -383,15 +383,17 @@ export async function fetchWeatherMapSeries(
   const grid: WeatherSeriesPoint[] = gridData.map(({ lat, lon, data }) => {
     const h = data.hourly;
     const len = h?.time?.length ?? 0;
+    const cur = data.current as (OmCurrentResponse & { wind_direction_10m?: number | null }) | undefined;
     return {
       lat,
       lon,
-      temperature_2m: data.current?.temperature_2m ?? null,
-      relative_humidity_2m: data.current?.relative_humidity_2m ?? null,
-      precipitation: data.current?.precipitation ?? null,
-      weather_code: data.current?.weather_code ?? null,
-      wind_speed_10m: data.current?.wind_speed_10m ?? null,
-      wind_direction_10m: (data.current as Record<string, unknown> as { wind_direction_10m?: number | null })?.wind_direction_10m ?? null,
+      temperature_2m: cur?.temperature_2m ?? null,
+      relative_humidity_2m: cur?.relative_humidity_2m ?? null,
+      precipitation: cur?.precipitation ?? null,
+      weather_code: cur?.weather_code ?? null,
+      wind_speed_10m: cur?.wind_speed_10m ?? null,
+      wind_direction_10m: cur?.wind_direction_10m ?? null,
+      cloud_cover: cur?.cloud_cover ?? null,
       hourly: {
         temperature_2m: valArr(h?.temperature_2m, len),
         apparent_temperature: valArr(h?.apparent_temperature, len),
