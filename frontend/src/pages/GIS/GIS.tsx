@@ -1,12 +1,11 @@
-import { CheckSquare, Info, Map as MapIcon, Square } from "lucide-react";
+import { CheckSquare, Info, Loader2, Map as MapIcon, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import IngresLoader from "@/components/IngresLoader";
-import IngresNetworkError from "@/components/IngresNetworkError";
+import GoogleMapView from "@/components/GoogleMapView";
 import LayersMap, { RAMP_CSS, type ActiveLayer } from "@/components/LayersMap";
 import LeafletMap from "@/components/LeafletMap";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getApiError, isNetworkError } from "@/services/api";
 import {
   Card,
   CardContent,
@@ -51,6 +50,8 @@ const LAYER_DEFS: { key: ActiveLayer; label: string }[] = [
   { key: "prediction", label: "Prediction" },
 ];
 
+const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
+
 export interface MapLocate {
   state?: string;
   district?: string;
@@ -77,7 +78,6 @@ export default function GIS() {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastError, setLastError] = useState<unknown>(null);
   const [activeLayer, setActiveLayer] = useState<ActiveLayer>("waterlevel");
   const [stationsOn, setStationsOn] = useState(false);
   const [stations, setStations] = useState<Station[]>([]);
@@ -121,7 +121,7 @@ export default function GIS() {
             <span>{t("Deep")}</span>
           </div>
           <p className="text-xs text-muted-foreground">
-            1.2 m → 11.2 m · derived from stage of extraction
+            1.2 m → 11.2 m · {t("derived from stage of extraction (demo)")}
           </p>
         </>
       );
@@ -138,7 +138,6 @@ export default function GIS() {
     let active = true;
     setLoading(true);
     setError(null);
-    setLastError(null);
     if (compareMode) {
       const params = {
         metric,
@@ -160,11 +159,7 @@ export default function GIS() {
           if (view === "india") setIndiaCompare(d as IndiaCompareData);
           else setCompareData(d as CompareData);
         })
-        .catch((err) => {
-          if (!active) return;
-          setLastError(err);
-          setError(getApiError(err));
-        })
+        .catch(() => active && setError(t("Failed to load map data.")))
         .finally(() => active && setLoading(false));
       return () => {
         active = false;
@@ -191,11 +186,7 @@ export default function GIS() {
         else if (view === "india") setIndia(d as IndiaMapData);
         else setData(d as MapData);
       })
-      .catch((err) => {
-        if (!active) return;
-        setLastError(err);
-        setError(getApiError(err));
-      })
+      .catch(() => active && setError(t("Failed to load map data.")))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
@@ -333,10 +324,11 @@ export default function GIS() {
           </h2>
           <p className="mt-1 text-muted-foreground">
             {t(
-              "Full-India map of all states and union territories with the IN-GRES national dataset."
+              "Full-India map of all states and union territories with the synthetic demo dataset."
             )}
           </p>
         </div>
+        <Badge variant="warning">{t("demo_data")}</Badge>
       </section>
 
       <Card>
@@ -575,21 +567,17 @@ export default function GIS() {
         </Card>
       )}
 
-      {error && isNetworkError(lastError) ? (
-        <IngresNetworkError detail={error} onRetry={() => window.location.reload()} />
-      ) : error ? (
+      {error && (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           {error}
         </div>
-      ) : null}
+      )}
 
       {loading ? (
-        <IngresLoader
-          variant="inline"
-          size="sm"
-          message={t("loading")}
-          submessage="Loading IN-GRES map data"
-        />
+        <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {t("loading")}
+        </div>
       ) : compareMode ? (
         compareData || indiaCompare ? (
           <>
@@ -632,10 +620,25 @@ export default function GIS() {
                   <CardDescription>
                     {(compareData?.meta.year_a ?? indiaCompare?.meta.year_a) ?? ""} →{" "}
                     {(compareData?.meta.year_b ?? indiaCompare?.meta.year_b) ?? ""} ·{" "}
-                    {view === "india" ? t("36 states & UTs") : state || t("both states")}
+                    {view === "india" ? t("36 states & UTs") : state || t("both demo states")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {GOOGLE_MAPS_KEY ? (
+                    <GoogleMapView
+                      features={
+                        (view === "india" ? [] : compareData?.features ?? []) as MapFeature[]
+                      }
+                      metric={metric}
+                      apiKey={GOOGLE_MAPS_KEY}
+                      india={
+                        view === "india"
+                          ? (indiaCompare as unknown as IndiaMapData | undefined)
+                          : undefined
+                      }
+                      compare
+                    />
+                  ) : (
                     <LeafletMap
                       features={
                         (view === "india" ? [] : compareData?.features ?? []) as MapFeature[]
@@ -648,6 +651,7 @@ export default function GIS() {
                       }
                       compare
                     />
+                  )}
                 </CardContent>
               </Card>
 
@@ -664,7 +668,7 @@ export default function GIS() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#e5e7eb" }} />
-                    <span className="text-muted-foreground">{t("No data available for this selection")}</span>
+                    <span className="text-muted-foreground">{t("No data in demo dataset")}</span>
                   </div>
                   <div className="mt-4 flex gap-2 text-xs text-muted-foreground">
                     <Info className="h-4 w-4 shrink-0" />
@@ -736,7 +740,7 @@ export default function GIS() {
                     ? t("36 states & UTs")
                     : view === "basins"
                       ? t("20 CWC river basins")
-                      : state || t("both states")}{" "}
+                      : state || t("both demo states")}{" "}
                   ·{" "}
                   {t(
                     view === "basins"
@@ -771,7 +775,7 @@ export default function GIS() {
                       style={{ backgroundColor: "#e5e7eb" }}
                     />
                     <span className="text-muted-foreground">
-                      {t("No data available for this selection")}
+                      {t("No data in demo dataset")}
                     </span>
                   </div>
                 )}

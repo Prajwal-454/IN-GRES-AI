@@ -205,7 +205,7 @@ function analysisHtml(a: LocationAnalysis, t: Translate): string {
   }
   rows.push(
     `<div style="color:#b45309;font-size:11px;margin-top:4px;">${escapeHtml(
-      t("IN-GRES Assessment Dataset")
+      t("Synthetic demo data")
     )}</div>`
   );
   return rows.join("");
@@ -267,7 +267,7 @@ export default function LayersMap({
     mapRef.current = map;
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    // Light muted basemap: calm geography, choropleth owns the
+    // Light muted basemap (CARTO Positron): calm geography, choropleth owns the
     // colour. Place-name tiles sit in a pane ABOVE the polygons so labels stay
     // readable.
     map.createPane("gwBase");
@@ -282,15 +282,14 @@ export default function LayersMap({
     labelPane.style.pointerEvents = "none";
 
     L.tileLayer(
-      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      { maxZoom: 19, subdomains: "abc", pane: "gwBase", attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', className: "ingres-light" }
+      "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
+      { maxZoom: 19, subdomains: "abcd", pane: "gwBase", attribution: "&copy; OpenStreetMap &copy; CARTO" }
     ).addTo(map);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
-      subdomains: "abc",
+      subdomains: "abcd",
       pane: "gwLabels",
       opacity: 0.9,
-      className: "ingres-light-labels",
     }).addTo(map);
 
     const layer = L.layerGroup().addTo(map);
