@@ -267,7 +267,7 @@ export default function LayersMap({
     mapRef.current = map;
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    // Light muted basemap (CARTO Positron): calm geography, choropleth owns the
+    // Light muted basemap: calm geography, choropleth owns the
     // colour. Place-name tiles sit in a pane ABOVE the polygons so labels stay
     // readable.
     map.createPane("gwBase");
@@ -282,14 +282,15 @@ export default function LayersMap({
     labelPane.style.pointerEvents = "none";
 
     L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-      { maxZoom: 19, subdomains: "abcd", pane: "gwBase", attribution: "&copy; OpenStreetMap &copy; CARTO" }
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      { maxZoom: 19, subdomains: "abc", pane: "gwBase", attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', className: "ingres-light" }
     ).addTo(map);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png", {
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
-      subdomains: "abcd",
+      subdomains: "abc",
       pane: "gwLabels",
       opacity: 0.9,
+      className: "ingres-light-labels",
     }).addTo(map);
 
     const layer = L.layerGroup().addTo(map);

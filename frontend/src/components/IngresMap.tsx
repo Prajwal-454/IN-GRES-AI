@@ -112,14 +112,14 @@ const BASE_MAPS: {
   {
     key: "light",
     label: "Light",
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    subdomains: "abcd",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    className: "ingres-light",
   },
   {
     key: "dark",
     label: "Dark",
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    subdomains: "abcd",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    className: "ingres-dark",
   },
   {
     key: "street",
@@ -466,15 +466,15 @@ export default function IngresMap() {
       maxZoom: 19,
       className: base.className,
       attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a> &copy; Esri',
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
     tileRef.current = tile;
     // Light/street basemaps carry their own labels; flat imagery needs ours.
     const initNeedsLabels = !["light", "street", "terrain"].includes(baseMap);
     if (initNeedsLabels) {
       labelsRef.current = L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
-        { subdomains: "abcd", pane: "mapLabels", opacity: 0.9, maxZoom: 19 }
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        { subdomains: "abc", pane: "mapLabels", opacity: 0.9, maxZoom: 19, className: "ingres-dark-labels" }
       ).addTo(map);
     }
 
@@ -620,15 +620,15 @@ export default function IngresMap() {
       maxZoom: 19,
       className: base.className,
       attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a> &copy; Esri',
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
     tileRef.current = tile;
     // Light basemaps carry their own dark labels; dark/imagery ones need ours.
     const needsOverlay = !["light", "street", "terrain"].includes(baseMap);
     if (needsOverlay && !labelsRef.current) {
       labelsRef.current = L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
-        { subdomains: "abcd", pane: "mapLabels", opacity: 0.9, maxZoom: 19 }
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        { subdomains: "abc", pane: "mapLabels", opacity: 0.9, maxZoom: 19, className: "ingres-dark-labels" }
       ).addTo(map);
     } else if (!needsOverlay && labelsRef.current) {
       labelsRef.current.remove();

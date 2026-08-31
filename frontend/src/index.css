@@ -39,6 +39,28 @@
   filter: grayscale(1);
 }
 
+/* Light basemap: brighten OSM tiles to mimic CARTO Positron. */
+.ingres-light {
+  filter: brightness(1.15) saturate(0.85) contrast(0.95);
+}
+
+/* Dark basemap: invert + desaturate OSM tiles for a dark-themed look. */
+.ingres-dark {
+  filter: invert(1) hue-rotate(180deg) brightness(0.8) contrast(1.1) saturate(0.6);
+}
+
+/* Dark labels overlay for satellite/hybrid views. */
+.ingres-dark-labels {
+  filter: invert(1) hue-rotate(180deg) brightness(1.6) contrast(1.4) saturate(0);
+  opacity: 0.7;
+}
+
+/* Light labels overlay for the groundwater choropleth map. */
+.ingres-light-labels {
+  filter: brightness(1.2) saturate(0.7) contrast(0.9);
+  opacity: 0.7;
+}
+
 /* Dark hover tooltip for the GIS choropleth. */
 .leaflet-tooltip.gw-tooltip {
   background: rgba(15, 23, 42, 0.92);
