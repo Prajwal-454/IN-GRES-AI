@@ -145,11 +145,11 @@ def fetch_imd_rainfall() -> list[dict] | None:
     Returns ``None`` when no ``IMD_API_KEY`` is configured (skipped).
     """
     settings = get_settings()
-    if not settings.IMD_API_KEY:
+    if not (settings.IMD_API_KEY or "").strip():
         return None
     url = f"{settings.IMD_API_BASE_URL.rstrip('/')}/districtrainfall"
     payload = _get_json(
-        url, timeout=60, verify=False, headers={"X-Api-Key": settings.IMD_API_KEY}
+        url, timeout=60, verify=False, headers={"X-Api-Key": (settings.IMD_API_KEY or '').strip()}
     )
     if not isinstance(payload, list):
         return []

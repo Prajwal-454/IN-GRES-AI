@@ -105,7 +105,7 @@ def _get_json(url: str, timeout: int = 40, headers: dict[str, str] | None = None
 
 def _imd_headers() -> dict[str, str]:
     """Auth headers for the IMD API (X-Api-Key, the portal's documented mechanism)."""
-    key = get_settings().IMD_API_KEY
+    key = (get_settings().IMD_API_KEY or "").strip()
     return {"X-Api-Key": key} if key else {}
 
 
@@ -339,8 +339,11 @@ _VARIABLE_CODE_TO_NAME = {
     3: "cloud_cover",
     19: "is_day",
     24: "precipitation",
+    26: "precipitation_probability",
     27: "pressure_msl",
     29: "relative_humidity_2m",
+    40: "sunrise",
+    41: "sunset",
     47: "temperature_2m",
     56: "weather_code",
     57: "wind_direction_10m",
@@ -350,6 +353,37 @@ _VARIABLE_CODE_TO_NAME = {
 
 def _variable_code_to_name(code: int) -> str:
     return _VARIABLE_CODE_TO_NAME.get(code, f"unknown_{code}")
+
+
+def _values_to_list(var) -> list:
+    """Robustly convert an Open-Meteo variable to a Python list.
+
+    The flatbuffer API returns ``ndarray`` for most variables but can return
+    a plain ``int`` for timestamp-like fields (sunrise/sunset). This helper
+    handles both without crashing (the live bug: ``'int' object has no
+    attribute 'tolist'``).
+    """
+    try:
+        vals = var.ValuesAsNumpy()
+    except Exception:
+        try:
+            vals = var.Value()
+            return [vals] if vals is not None else []
+        except Exception:
+            return []
+    if hasattr(vals, "tolist"):
+        try:
+            return vals.tolist()
+        except Exception:
+            pass
+    if isinstance(vals, (list, tuple)):
+        return list(vals)
+    if isinstance(vals, (int, float)):
+        return [vals]
+    try:
+        return list(vals)  # type: ignore[arg-type]
+    except Exception:
+        return [vals] if vals is not None else []
 
 
 def _response_to_dict(response) -> dict:
@@ -375,10 +409,24 @@ def _response_to_dict(response) -> dict:
     hourly = response.Hourly()
     if hourly:
         result["hourly"] = {}
+        # Keep ordered list to disambiguate duplicate codes (e.g., temperature_2m
+        # appears once for hourly but daily has max/min sharing the same code).
+        _hourly_ordered: list[tuple[str, list]] = []
         for i in range(hourly.VariablesLength()):
             var = hourly.Variables(i)
             name = _variable_code_to_name(var.Variable())
-            result["hourly"][name] = var.ValuesAsNumpy().tolist()
+            vals = _values_to_list(var)
+            # De-duplicate: hourly has unique codes, but handle gracefully
+            if name in result["hourly"]:
+                # preserve first, store duplicate with indexed suffix
+                idx = 1
+                while f"{name}__{idx}" in result["hourly"]:
+                    idx += 1
+                result["hourly"][f"{name}__{idx}"] = vals
+            else:
+                result["hourly"][name] = vals
+            _hourly_ordered.append((name, vals))
+        result["hourly"]["_ordered"] = _hourly_ordered  # for debugging / order-based fallback
         result["hourly"]["time"] = [
             pd.to_datetime(t, unit="s", utc=True).isoformat()
             for t in range(int(hourly.Time()), int(hourly.TimeEnd()), int(hourly.Interval()))
@@ -387,10 +435,55 @@ def _response_to_dict(response) -> dict:
     daily = response.Daily()
     if daily:
         result["daily"] = {}
+        _daily_ordered: list[tuple[str, list]] = []
+        # Expected daily keys in the order requested by fetch_openmeteo.
+        # Open-Meteo re-uses variable codes for max/min (e.g., 47 for both
+        # temperature_2m_max and temperature_2m_min), so code-based mapping
+        # would clobber. We keep the ordered list and remap by position.
+        _EXPECTED_DAILY_KEYS = [
+            "weather_code",
+            "temperature_2m_max",
+            "temperature_2m_min",
+            "apparent_temperature_max",
+            "apparent_temperature_min",
+            "precipitation_sum",
+            "precipitation_probability_max",
+            "wind_speed_10m_max",
+        ]
         for i in range(daily.VariablesLength()):
             var = daily.Variables(i)
             name = _variable_code_to_name(var.Variable())
-            result["daily"][name] = var.ValuesAsNumpy().tolist()
+            vals = _values_to_list(var)
+            _daily_ordered.append((name, vals))
+            # Also keep code-based entry for backwards-compat / debugging
+            if name in result["daily"]:
+                idx = 1
+                while f"{name}__{idx}" in result["daily"]:
+                    idx += 1
+                result["daily"][f"{name}__{idx}"] = vals
+            else:
+                result["daily"][name] = vals
+        # If ordered length matches expected, rebuild with correct max/min names
+        # so _daily() finds temperature_2m_max etc. even when codes collide.
+        if len(_daily_ordered) == len(_EXPECTED_DAILY_KEYS):
+            for key, (_, vals) in zip(_EXPECTED_DAILY_KEYS, _daily_ordered):
+                result["daily"][key] = vals
+        elif len(_daily_ordered) >= 6:
+            # Fallback: try to map by position for older payloads that included
+            # sunrise/sunset (10 vars). Keep first 5, skip sunrise/sunset (40,41),
+            # then map remaining.
+            # Historical daily order with sunrise/sunset:
+            # 0:weather_code, 1:temp_max, 2:temp_min, 3:apparent_max, 4:apparent_min,
+            # 5:sunrise, 6:sunset, 7:precip_sum, 8:precip_prob_max, 9:wind_max
+            if len(_daily_ordered) == 10 and _daily_ordered[5][0] == "sunrise":
+                remapped = [
+                    _daily_ordered[0], _daily_ordered[1], _daily_ordered[2],
+                    _daily_ordered[3], _daily_ordered[4], _daily_ordered[7],
+                    _daily_ordered[8], _daily_ordered[9],
+                ]
+                for key, (_, vals) in zip(_EXPECTED_DAILY_KEYS, remapped):
+                    result["daily"][key] = vals
+        result["daily"]["_ordered"] = _daily_ordered
         result["daily"]["time"] = [
             pd.to_datetime(t, unit="s", utc=True).date().isoformat()
             for t in range(int(daily.Time()), int(daily.TimeEnd()), int(daily.Interval()))
@@ -401,7 +494,8 @@ def _response_to_dict(response) -> dict:
 
 def fetch_openmeteo(lat: float, lon: float, days: int = 7) -> dict:
     """Call the Open-Meteo forecast API and return the raw JSON payload."""
-    sig = f"fcst|{days}|{lat:.4f}/{lon:.4f}"
+    # Bump to v2 to bust old cache that had broken daily mapping / int sunrise bug
+    sig = f"fcst2|{days}|{lat:.4f}/{lon:.4f}"
     disk = _disk_entry(sig)
     if disk and time.time() - disk.get("fetched_at", 0) < _SERIES_CACHE_TTL:
         return disk["payload"]
@@ -437,8 +531,6 @@ def fetch_openmeteo(lat: float, lon: float, days: int = 7) -> dict:
             "temperature_2m_min",
             "apparent_temperature_max",
             "apparent_temperature_min",
-            "sunrise",
-            "sunset",
             "precipitation_sum",
             "precipitation_probability_max",
             "wind_speed_10m_max",
@@ -1070,7 +1162,7 @@ def get_weather_forecast(
     ``IMD_API_KEY`` is configured or the IMD API is unreachable.
     """
     lat, lon, scope = resolve_scope_location(db, state, district, village)
-    if get_settings().IMD_API_KEY:
+    if (get_settings().IMD_API_KEY or "").strip():
         try:
             return _forecast_from_imd(db, lat, lon, scope, state, district, village, days)
         except Exception:  # noqa: BLE001 - degrade to the fallback provider
