@@ -1,6 +1,7 @@
 import { CheckSquare, Info, Map as MapIcon, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import GoogleMapView from "@/components/GoogleMapView";
 import IngresLoader from "@/components/IngresLoader";
 import IngresNetworkError from "@/components/IngresNetworkError";
 import LayersMap, { RAMP_CSS, type ActiveLayer } from "@/components/LayersMap";
@@ -50,6 +51,8 @@ const LAYER_DEFS: { key: ActiveLayer; label: string }[] = [
   { key: "critical", label: "Critical Areas" },
   { key: "prediction", label: "Prediction" },
 ];
+
+const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
 
 export interface MapLocate {
   state?: string;
@@ -636,6 +639,21 @@ export default function GIS() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {GOOGLE_MAPS_KEY ? (
+                    <GoogleMapView
+                      features={
+                        (view === "india" ? [] : compareData?.features ?? []) as MapFeature[]
+                      }
+                      metric={metric}
+                      apiKey={GOOGLE_MAPS_KEY}
+                      india={
+                        view === "india"
+                          ? (indiaCompare as unknown as IndiaMapData | undefined)
+                          : undefined
+                      }
+                      compare
+                    />
+                  ) : (
                     <LeafletMap
                       features={
                         (view === "india" ? [] : compareData?.features ?? []) as MapFeature[]
@@ -648,6 +666,7 @@ export default function GIS() {
                       }
                       compare
                     />
+                  )}
                 </CardContent>
               </Card>
 
