@@ -39,9 +39,9 @@
   filter: grayscale(1);
 }
 
-/* Light basemap: brighten OSM tiles to mimic CARTO Positron. */
+/* Light basemap: subtle desaturation + slight dim so choropleth colours pop. */
 .ingres-light {
-  filter: brightness(1.15) saturate(0.85) contrast(0.95);
+  filter: brightness(1.05) saturate(0.6) contrast(1.0);
 }
 
 /* Dark basemap: invert + desaturate OSM tiles for a dark-themed look. */
@@ -55,21 +55,23 @@
   opacity: 0.7;
 }
 
-/* Light labels overlay for the groundwater choropleth map. */
+/* Light labels overlay — keep readable but don't compete with choropleth. */
 .ingres-light-labels {
-  filter: brightness(1.2) saturate(0.7) contrast(0.9);
-  opacity: 0.7;
+  filter: brightness(1.05) saturate(0.5) contrast(1.0);
+  opacity: 0.55;
 }
 
 /* Dark hover tooltip for the GIS choropleth. */
 .leaflet-tooltip.gw-tooltip {
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(100, 116, 139, 0.3);
   color: #e2e8f0;
-  font-size: 11.5px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.5;
   border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  padding: 8px 10px;
+  max-width: 220px;
 }
 .leaflet-tooltip.gw-tooltip::before {
   display: none;
