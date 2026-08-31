@@ -3,7 +3,6 @@ node_modules/
 dist/
 dev-dist/
 states/
-knowledge/
 data/
 tests/
 .git/
