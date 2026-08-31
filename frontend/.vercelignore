@@ -1,4 +1,0 @@
-# Only exclude what's not needed for the build
-node_modules/
-dist/
-dev-dist/

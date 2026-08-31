@@ -9,23 +9,23 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 
-const Admin = lazy(() => import("@/pages/Admin/index"));
-const Assistant = lazy(() => import("@/pages/Assistant/index"));
-const Compare = lazy(() => import("@/pages/Compare/index"));
-const Dashboard = lazy(() => import("@/pages/Dashboard/index"));
-const Expert = lazy(() => import("@/pages/Expert/index"));
-const Forecast = lazy(() => import("@/pages/Forecast/index"));
-const GIS = lazy(() => import("@/pages/GIS/index"));
-const Groundwater = lazy(() => import("@/pages/Groundwater/index"));
-const History = lazy(() => import("@/pages/History/index"));
-const Knowledge = lazy(() => import("@/pages/Knowledge/index"));
-const Landing = lazy(() => import("@/pages/Landing/index"));
-const Login = lazy(() => import("@/pages/Login/index"));
-const Notifications = lazy(() => import("@/pages/Notifications/index"));
-const Register = lazy(() => import("@/pages/Register/index"));
-const Reports = lazy(() => import("@/pages/Reports/index"));
-const Studio = lazy(() => import("@/pages/Studio/index"));
-const Weather = lazy(() => import("@/pages/Weather/index"));
+const Admin = lazy(() => import("@/pages/Admin"));
+const Assistant = lazy(() => import("@/pages/Assistant"));
+const Compare = lazy(() => import("@/pages/Compare"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Expert = lazy(() => import("@/pages/Expert"));
+const Forecast = lazy(() => import("@/pages/Forecast"));
+const GIS = lazy(() => import("@/pages/GIS"));
+const Groundwater = lazy(() => import("@/pages/Groundwater"));
+const History = lazy(() => import("@/pages/History"));
+const Knowledge = lazy(() => import("@/pages/Knowledge"));
+const Landing = lazy(() => import("@/pages/Landing"));
+const Login = lazy(() => import("@/pages/Login"));
+const Notifications = lazy(() => import("@/pages/Notifications"));
+const Register = lazy(() => import("@/pages/Register"));
+const Reports = lazy(() => import("@/pages/Reports"));
+const Studio = lazy(() => import("@/pages/Studio"));
+const Weather = lazy(() => import("@/pages/Weather"));
 
 function PageFallback() {
   return (
