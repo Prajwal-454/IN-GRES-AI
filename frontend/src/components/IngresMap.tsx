@@ -17,7 +17,6 @@ import {
   Radar,
   Search,
   Settings2,
-  SkipBack,
   SkipForward,
   Thermometer,
   Wind,
@@ -818,6 +817,8 @@ export default function IngresMap() {
       .map((s) => ({ label: s.label, pct: (s.idx / maxFrame) * 100 }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, series, maxFrame, nowIndex]);
+  // Keep timeline helpers referenced (bar removed, logic preserved for future use)
+  void barPos; void stepFrame; void pinWeather; void barTimeText; void togglePlayFromBar; void timelineLabel; void tickSpecs;
 
   return (
     <div className="relative h-[calc(100vh-7rem)] min-h-[520px] w-full overflow-hidden bg-slate-950">
@@ -1257,86 +1258,12 @@ export default function IngresMap() {
         </div>
       )}
 
-      {/* Unified bottom dock: legend stacked above the timeline (MSN-style). */}
+      {/* Legend dock only — weather timeline control bar removed (Play/OBSERVED/slider/Now) */}
       {series && series.times.length > 0 && (
         <div className="absolute bottom-4 left-1/2 z-[500] flex -translate-x-1/2 flex-col items-center gap-1.5">
           {metric !== "none" && !loading && (
             <Legend metric={metric} min={legend.min} max={legend.max} />
           )}
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 shadow-xl backdrop-blur-md">
-            <button
-              type="button"
-              onClick={() => setPlaying((p) => !p)}
-              disabled={mode === "current" || mode === "radar" || mode === "historical"}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-500 text-white shadow transition-colors hover:bg-sky-400 disabled:opacity-40"
-              aria-label={playing ? t("Pause") : t("Play")}
-            >
-              {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 translate-x-[1px]" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => stepFrame(-1)}
-              disabled={mode === "current" || mode === "radar" || mode === "historical"}
-              className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-white/10 hover:text-slate-200 disabled:opacity-40"
-              aria-label={t("Previous")}
-            >
-              <SkipBack className="h-3.5 w-3.5" />
-            </button>
-            <span
-              className={cn(
-                "rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider",
-                Math.round(effectiveFrame) <= nowIndex
-                  ? "bg-sky-500/20 text-sky-300"
-                  : "bg-violet-500/20 text-violet-300"
-              )}
-            >
-              {Math.round(effectiveFrame) <= nowIndex ? t("Observed") : t("Forecast")}
-            </span>
-            <div className="relative flex items-center pb-5">
-              <input
-                type="range"
-                min={0}
-                max={maxFrame}
-                step={1}
-                value={Math.round(effectiveFrame)}
-                disabled={mode === "current" || mode === "radar" || mode === "historical"}
-                onChange={(e) => {
-                  setPlaying(false);
-                  setFrame(Number(e.target.value));
-                }}
-                className="w-40 accent-sky-400 sm:w-64"
-                aria-label={t("Timeline")}
-              />
-              <span
-                className="pointer-events-none absolute bottom-4 mt-0.5 h-1.5 w-px bg-sky-300/80"
-                style={{ left: `${maxFrame > 0 ? (nowIndex / maxFrame) * 100 : 0}%` }}
-                title={t("Now")}
-              />
-              {/* Forecast-time scale: Now → +3h → +6h → +12h → Max. */}
-              {tickSpecs.length > 0 &&
-                tickSpecs.map((s) => (
-                  <span
-                    key={s.label}
-                    className="pointer-events-none absolute bottom-0 -translate-x-1/2 whitespace-nowrap text-[9px] font-semibold tabular-nums text-slate-400 first:translate-x-0 last:-translate-x-full"
-                    style={{ left: `${Math.min(96, Math.max(2, s.pct))}%` }}
-                  >
-                    {s.label}
-                  </span>
-                ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => stepFrame(1)}
-              disabled={mode === "current" || mode === "radar" || mode === "historical"}
-              className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-white/10 hover:text-slate-200 disabled:opacity-40"
-              aria-label={t("Next")}
-            >
-              <SkipForward className="h-3.5 w-3.5" />
-            </button>
-            <span className="min-w-[5.5rem] text-right text-xs font-semibold tabular-nums text-slate-200 sm:min-w-[7rem]">
-              {timelineLabel(series.times[Math.min(Math.round(effectiveFrame), maxFrame)])}
-            </span>
-          </div>
         </div>
       )}
 
