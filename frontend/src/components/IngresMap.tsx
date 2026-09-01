@@ -847,8 +847,13 @@ export default function IngresMap() {
 
 
 
-      {/* Top bar */}
-      <div className="absolute left-3 right-3 top-3 z-[500] flex flex-wrap items-center gap-2">
+      {/* Top bar - responsive, properly aligned, separated from Location panel */}
+      <div
+        className={cn(
+          "absolute left-3 top-3 z-[500] flex flex-wrap items-center gap-2 transition-[right] duration-200",
+          pin ? "right-3 sm:right-[22rem] lg:right-[23rem]" : "right-3"
+        )}
+      >
         <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 shadow-lg backdrop-blur-md">
           <CloudSun className="h-5 w-5 text-sky-400" />
           <span className="text-sm font-bold text-slate-100">IN-GRES Map</span>
@@ -866,7 +871,7 @@ export default function IngresMap() {
           )}
         </div>
 
-        <div className="relative flex-1 max-w-md">
+        <div className="relative min-w-0 flex-1 basis-[180px] max-w-md">
           <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 shadow-lg backdrop-blur-md">
             <Search className="h-4 w-4 shrink-0 text-slate-500" />
             <input
@@ -1258,17 +1263,19 @@ export default function IngresMap() {
         </div>
       )}
 
-      {/* Legend dock only — weather timeline control bar removed (Play/OBSERVED/slider/Now) */}
+      {/* Legend dock only — no left-edge overflow, centered within map */}
       {series && series.times.length > 0 && (
-        <div className="absolute bottom-4 left-1/2 z-[500] flex -translate-x-1/2 flex-col items-center gap-1.5">
+        <div className="pointer-events-none absolute bottom-4 left-1/2 z-[500] flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 flex-col items-center gap-1.5 sm:max-w-none">
           {metric !== "none" && !loading && (
-            <Legend metric={metric} min={legend.min} max={legend.max} />
+            <div className="pointer-events-auto max-w-full">
+              <Legend metric={metric} min={legend.min} max={legend.max} />
+            </div>
           )}
         </div>
       )}
 
       {gwLayer && gwData && gwData.meta.years.length > 0 && (
-        <div className="absolute bottom-24 left-1/2 z-[500] flex -translate-x-1/2 items-center gap-3 rounded-xl border border-white/10 bg-slate-900/80 px-4 py-2 shadow-xl backdrop-blur-md">
+        <div className="absolute bottom-24 left-1/2 z-[500] flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-2 rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 shadow-xl backdrop-blur-md sm:max-w-none sm:gap-3 sm:px-4">
           <button
             type="button"
             onClick={() => setGwPlaying((p) => !p)}
@@ -1296,8 +1303,13 @@ export default function IngresMap() {
         </div>
       )}
 
-      {/* Zoom controls */}
-      <div className="absolute bottom-16 left-3 z-[550] flex flex-col overflow-hidden rounded-lg border border-white/10 bg-slate-900/80 shadow-lg backdrop-blur-md">
+      {/* Zoom controls - responsive, not clipped at left edge */}
+      <div
+        className={cn(
+          "absolute left-3 z-[550] flex flex-col overflow-hidden rounded-lg border border-white/10 bg-slate-900/80 shadow-lg backdrop-blur-md",
+          pin ? "bottom-[61vh] sm:bottom-4" : "bottom-4"
+        )}
+      >
         <button
           type="button"
           onClick={() => mapRef.current?.zoomIn()}
@@ -1318,24 +1330,39 @@ export default function IngresMap() {
       </div>
 
       {pin && (
-        <div className="absolute bottom-16 right-3 z-[500] max-h-[calc(100%-6rem)] w-72 overflow-y-auto rounded-xl border border-white/10 bg-slate-900/90 p-3 shadow-2xl backdrop-blur-md">
-          <div className="mb-1 flex items-center justify-between">
-            <span className="truncate text-sm font-bold text-slate-100">
-              {pinLabel ?? t("Location")}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPin(null)}
-              className="ml-2 shrink-0 text-slate-500 hover:text-slate-300"
-              aria-label={t("Close")}
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+        <div
+          className={cn(
+            "absolute z-[500] overflow-hidden rounded-xl border border-white/10 bg-slate-900/90 shadow-2xl backdrop-blur-md",
+            // Mobile: bottom sheet, full width with safe margins, capped height
+            "inset-x-3 bottom-3 top-auto max-h-[58vh]",
+            // Tablet+ : side panel, clearly separated from top controls with proper gap
+            "sm:inset-x-auto sm:bottom-4 sm:right-3 sm:top-[4.75rem] sm:max-h-[calc(100%-5.5rem)] sm:w-80 sm:max-w-[calc(100vw-2rem)]",
+            "lg:w-[22rem]"
+          )}
+        >
+          <div className="flex h-full max-h-[58vh] flex-col sm:max-h-[calc(100vh-9rem)]">
+            <div className="shrink-0 border-b border-white/[0.06] p-3 pb-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-sm font-bold text-slate-100">
+                  {pinLabel ?? t("Location")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPin(null)}
+                  className="ml-2 shrink-0 rounded-md p-1 text-slate-500 transition-colors hover:bg-white/5 hover:text-slate-300"
+                  aria-label={t("Close")}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <span className="mt-1 block text-xs tabular-nums text-slate-500">
+                {formatCoords(pin[0], pin[1])}
+              </span>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-3 pt-3 scrollbar-thin">
+              <WeatherCard lat={pin[0]} lon={pin[1]} settings={settings} />
+            </div>
           </div>
-          <span className="text-xs tabular-nums text-slate-500">
-            {formatCoords(pin[0], pin[1])}
-          </span>
-          <WeatherCard lat={pin[0]} lon={pin[1]} settings={settings} />
         </div>
       )}
 
