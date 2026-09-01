@@ -837,27 +837,6 @@ export default function IngresMap() {
       />
       <CityLabels map={mapRef.current} series={series} frame={effectiveFrame} />
 
-      {/* MSN-style info bar anchored to the selected marker. */}
-      {pin && series && (
-        <MarkerInfoBar
-          map={mapRef.current}
-          series={series}
-          pin={pin}
-          frame={Math.round(effectiveFrame)}
-          playing={playing}
-          canPlay={modeAvailable("forecast", series) && mode === "forecast"}
-          onTogglePlay={() => {
-            if (mode !== "forecast") {
-              setMode("forecast");
-              setPlaying(true);
-            } else {
-              setPlaying((p) => !p);
-            }
-          }}
-          onClose={() => setPin(null)}
-        />
-      )}
-
       {/* Hover tooltip (content written directly by the mousemove handler). */}
       <div
         ref={tooltipRef}
@@ -865,39 +844,7 @@ export default function IngresMap() {
         className="pointer-events-none absolute z-[450] rounded-xl border border-white/10 bg-slate-900/85 px-3 py-2 shadow-2xl backdrop-blur-md"
       />
 
-      {/* Selected-location info bar (MSN-style): temp · time · play · close. */}
-      {barPos && pin && (
-        <div
-          className="absolute z-[520] flex -translate-x-[10%] -translate-y-full items-center gap-3 rounded-xl border border-white/10 bg-slate-800/90 px-3.5 py-2 shadow-2xl backdrop-blur-md"
-          style={{ left: barPos.x + 10, top: barPos.y - 44 }}
-        >
-          <span className="text-xl font-bold leading-none text-white tabular-nums">
-            {pinWeather?.temperature_2m != null ? `${Math.round(pinWeather.temperature_2m)}°` : "—"}
-          </span>
-          <span className="text-xs font-medium text-slate-300 tabular-nums">{barTimeText}</span>
-          <button
-            type="button"
-            onClick={togglePlayFromBar}
-            disabled={!modeAvailable("forecast", series)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-slate-900 shadow transition-colors hover:bg-amber-300 disabled:opacity-40"
-            aria-label={playing && mode === "forecast" ? t("Pause") : t("Play")}
-          >
-            {playing && mode === "forecast" ? (
-              <Pause className="h-3.5 w-3.5" />
-            ) : (
-              <Play className="h-3.5 w-3.5 translate-x-[1px]" />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setPin(null)}
-            className="text-slate-400 transition-colors hover:text-white"
-            aria-label={t("Close")}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+
 
       {/* Top bar */}
       <div className="absolute left-3 right-3 top-3 z-[500] flex flex-wrap items-center gap-2">
@@ -1511,91 +1458,6 @@ export default function IngresMap() {
           </p>
         </div>
       )}
-    </div>
-  );
-}
-
-function MarkerInfoBar({
-  map,
-  series,
-  pin,
-  frame,
-  playing,
-  canPlay,
-  onTogglePlay,
-  onClose,
-}: {
-  map: L.Map | null;
-  series: WeatherMapSeries;
-  pin: [number, number];
-  frame: number;
-  playing: boolean;
-  canPlay: boolean;
-  onTogglePlay: () => void;
-  onClose: () => void;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  // Keep the bar glued to the geographic coordinate through pan/zoom.
-  useEffect(() => {
-    if (!map) return;
-    const update = () => {
-      const el = ref.current;
-      if (!el) return;
-      const pt = map.latLngToContainerPoint(L.latLng(pin[0], pin[1]));
-      el.style.left = `${pt.x}px`;
-      el.style.top = `${Math.max(pt.y - 46, 64)}px`;
-    };
-    update();
-    map.on("move zoom resize viewreset", update);
-    return () => {
-      map.off("move zoom resize viewreset", update);
-    };
-  }, [map, pin[0], pin[1]]);
-
-  const w = sampleWeatherAt(series, pin[0], pin[1], frame);
-  const when = series.times[Math.min(frame, series.times.length - 1)];
-  const d = new Date(when);
-  const dateLabel = Number.isNaN(d.getTime())
-    ? when
-    : `${d.toLocaleString("en-IN", { weekday: "short" })} ${d.getDate()}, ${d.toLocaleString("en-IN", { hour: "numeric" })}`;
-
-  return (
-    <div
-      ref={ref}
-      className="absolute z-[520] flex -translate-x-1/2 -translate-y-full items-center gap-3 rounded-xl border border-white/10 bg-slate-800/85 px-4 py-2 shadow-2xl backdrop-blur-md"
-      style={{ pointerEvents: "auto" }}
-    >
-      <span className="text-xl font-bold tabular-nums text-white">
-        {w.temperature_2m !== null ? `${Math.round(w.temperature_2m)}°` : "—"}
-      </span>
-      <span className="whitespace-nowrap text-xs font-semibold text-slate-200">{dateLabel}</span>
-      <button
-        type="button"
-        onClick={onTogglePlay}
-        disabled={!canPlay && !playing}
-        title={playing ? "Pause forecast animation" : "Play forecast animation"}
-        className={cn(
-          "flex h-7 w-7 items-center justify-center rounded-full shadow transition-colors",
-          playing ? "bg-slate-500 hover:bg-slate-400" : "bg-amber-400 text-slate-900 hover:bg-amber-300",
-          !canPlay && !playing && "cursor-not-allowed opacity-40"
-        )}
-        aria-label={playing ? "Pause" : "Play"}
-      >
-        {playing ? (
-          <Pause className="h-3.5 w-3.5" />
-        ) : (
-          <Play className="h-3.5 w-3.5 translate-x-[1px]" />
-        )}
-      </button>
-      <button
-        type="button"
-        onClick={onClose}
-        className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-white/10 hover:text-white"
-        aria-label="Close"
-      >
-        <X className="h-3.5 w-3.5" />
-      </button>
     </div>
   );
 }
