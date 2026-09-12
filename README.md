@@ -122,12 +122,14 @@ Then open:
 - Backend API docs (Swagger): http://localhost:8000/docs
 - Health check: http://localhost:8000/api/health
 
-Demo accounts (dev only, created on first boot):
+Demo accounts (dev only, created on first boot — configure via `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_USER_EMAIL`, `SEED_USER_PASSWORD` in `.env`):
 
-| Role  | Email            | Password   |
-|-------|------------------|------------|
-| Admin | admin@ingres.in  | admin12345 |
-| User  | user@ingres.in   | user12345  |
+| Role  | Email           |
+|-------|-----------------|
+| Admin | admin@ingres.in |
+| User  | user@ingres.in  |
+
+> Change the default passwords before exposing publicly. Never commit `.env` with real secrets.
 
 > When dependency lists change (`requirements.txt`, `package.json`) or you want a clean slate,
 > run `docker compose down -v` first to recreate the anonymous node_modules volume and volumes.

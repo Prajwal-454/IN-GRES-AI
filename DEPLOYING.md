@@ -34,7 +34,7 @@ the link.
 > (`lookup region1.v2.argotunnel.com: i/o timeout`) and drops the tunnel.
 > localhost.run uses the system SSH client and is unaffected.
 
-> The dev credentials (`user@ingres.in` / `user12345`) are baked into the
+> The dev credentials (see `SEED_USER_EMAIL` / `SEED_USER_PASSWORD` in your local `.env`) are baked into the
 > local SQLite database. For anything beyond a quick demo, use Option 2 with
 > changed secrets.
 

@@ -73,12 +73,18 @@ def _login(client: TestClient, email: str, password: str) -> dict:
 
 @pytest.fixture(scope="session")
 def user_token(client: TestClient) -> str:
-    return _login(client, "user@ingres.in", "user12345")["access_token"]
+    from app.config import get_settings
+
+    s = get_settings()
+    return _login(client, s.SEED_USER_EMAIL, s.SEED_USER_PASSWORD)["access_token"]
 
 
 @pytest.fixture(scope="session")
 def admin_token(client: TestClient) -> str:
-    return _login(client, "admin@ingres.in", "admin12345")["access_token"]
+    from app.config import get_settings
+
+    s = get_settings()
+    return _login(client, s.SEED_ADMIN_EMAIL, s.SEED_ADMIN_PASSWORD)["access_token"]
 
 
 @pytest.fixture()

@@ -213,9 +213,9 @@ class Settings(BaseSettings):
     TELEPHONY_PHONE_NUMBER: str = "+15005550000"
 
     SEED_ADMIN_EMAIL: str = "admin@ingres.in"
-    SEED_ADMIN_PASSWORD: str = "admin12345"
+    SEED_ADMIN_PASSWORD: str = "CHANGE_ME_ADMIN_PASSWORD"
     SEED_USER_EMAIL: str = "user@ingres.in"
-    SEED_USER_PASSWORD: str = "user12345"
+    SEED_USER_PASSWORD: str = "CHANGE_ME_USER_PASSWORD"
 
     # Demo dataset seeding: "national" (all-India synthetic, ~600k villages) |
     # "demo" (small 2-state sample used by tests) | "none"
