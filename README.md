@@ -188,7 +188,7 @@ To enable LLM answers (optional — the heuristic assistant works without one):
 LLM_ENABLED=true
 LLM_PROVIDER=ollama          # ollama | groq | openai | gemini | mistral
 LLM_API_KEY=                 # only needed for cloud providers
-LLM_MODEL=                   # blank = per-provider default (e.g. qwen2.5:3b / llama-3.3-70b-versatile)
+LLM_MODEL=                   # blank = per-provider default (e.g. qwen2.5:3b / openai/gpt-oss-120b)
 ```
 
 The client speaks the OpenAI-compatible chat protocol and walks a **backend
@@ -568,13 +568,18 @@ The orchestrator now follows an understand-first pipeline
 
 ### Groq-native internet search
 
-- Questions the KB can't answer go to **`groq/compound`**, which searches the
-  live web itself; visited URLs are extracted from its tool log and shown as
-  source chips in the chat. DuckDuckGo (`ddgs`) + `gpt-oss-120b` remain as an
-  automatic fallback chain, then local Ollama. Transient 413/429 responses are
-  retried with backoff honouring `Retry-After`.
+- Questions the KB can't answer go to **`openai/gpt-oss-120b`** with Groq's
+  built-in `browser_search` tool (server-side, Exa-powered), which browses
+  the live web itself; visited URLs are extracted from its tool log and shown
+  as source chips in the chat. DuckDuckGo (`ddgs`) + `gpt-oss-120b` remain as
+  an explicit fallback chain, then local Ollama. Transient 413/429 responses
+  are retried with backoff honouring `Retry-After`; permanent 400/401/404
+  (e.g. decommissioned model) fail over immediately. (`groq/compound` was
+  retired 2026-09-21 and is no longer used.)
 - Provider presets in `app/config.py`: `ollama | groq | openai | gemini |
   mistral` — set `LLM_PROVIDER` (+ key) and everything else auto-resolves.
+  Override the search pass with `LLM_SEARCH_MODEL` (e.g. `openai/gpt-oss-20b`
+  for a faster/cheaper search).
 
 ### Registration CAPTCHA
 

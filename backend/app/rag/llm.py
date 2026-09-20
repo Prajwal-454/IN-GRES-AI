@@ -90,19 +90,27 @@ def _request_chat(
     temperature: float,
     max_tokens: int,
     timeout: int | None = None,
+    tools: list[dict] | None = None,
+    tool_choice: str | dict | None = None,
 ) -> dict | None:
     """One chat-completions call against a specific backend.
 
     Transient failures (413 from agentic search payloads, 429 rate limits,
-    5xx) are retried a couple of times with a short backoff.
+    5xx) are retried a couple of times with a short backoff. Permanent
+    failures (401 invalid key, 400 model_decommissioned / model_not_found)
+    return None immediately so callers can fall back.
     """
     settings = get_settings()
-    payload = {
+    payload: dict = {
         "model": backend["model"],
         "messages": messages,
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
+    if tools:
+        payload["tools"] = tools
+    if tool_choice is not None:
+        payload["tool_choice"] = tool_choice
     if "11434" in backend["base_url"]:
         payload["keep_alive"] = "30m"
     headers = (
@@ -123,6 +131,20 @@ def _request_chat(
                     raise httpx.HTTPStatusError(
                         f"transient {resp.status_code}", request=resp.request, response=resp
                     )
+                if resp.status_code in (400, 401, 403, 404):
+                    # Permanent: bad key, unknown/decommissioned model, bad
+                    # tool payload. Log the server message once and stop —
+                    # callers fall back to DuckDuckGo / next backend.
+                    try:
+                        detail = resp.json()
+                    except Exception:  # noqa: BLE001
+                        detail = resp.text[:300]
+                    logger.warning(
+                        "LLM %s/%s permanent %s: %s",
+                        backend["provider"], backend["model"],
+                        resp.status_code, detail,
+                    )
+                    return None
                 resp.raise_for_status()
                 return resp.json()
         except httpx.HTTPStatusError as exc:
@@ -260,7 +282,12 @@ _SEARCH_SYSTEM_PROMPT = (
 
 
 def _extract_search_urls(data: dict) -> list[str]:
-    """Pull the URLs the search tool actually visited out of the response."""
+    """Pull the URLs the search tool actually visited out of the response.
+
+    Handles both the legacy Compound ``executed_tools`` shape and the
+    gpt-oss ``browser_search`` tool-call shape (tool results / citations may
+    appear under ``tool_calls``, ``citations``, or nested ``results``).
+    """
     urls: list[str] = []
 
     def walk(node: object) -> None:
@@ -268,6 +295,11 @@ def _extract_search_urls(data: dict) -> list[str]:
             url = node.get("url")
             if isinstance(url, str) and url.startswith("http"):
                 urls.append(url)
+            # Groq browser_search citations sometimes use href/link/source.
+            for key in ("href", "link", "source"):
+                val = node.get(key)
+                if isinstance(val, str) and val.startswith("http"):
+                    urls.append(val)
             for value in node.values():
                 walk(value)
         elif isinstance(node, list):
@@ -279,8 +311,17 @@ def _extract_search_urls(data: dict) -> list[str]:
         message = data["choices"][0]["message"]
     except (KeyError, IndexError, TypeError):
         return []
-    tools = message.get("executed_tools") or []
-    walk(tools)
+    # Legacy Compound field + gpt-oss tool-call/citation fields.
+    for field in ("executed_tools", "tool_calls", "citations", "browser_results"):
+        tools = message.get(field) or []
+        walk(tools)
+    # Also walk tool-role messages (Exa results are sometimes returned there).
+    try:
+        for choice_msg in data.get("choices", []):
+            for extra in ("tool_messages", "messages"):
+                walk(choice_msg.get(extra) or [])
+    except Exception:  # noqa: BLE001 - URL extraction is best-effort
+        pass
     seen: set[str] = set()
     ordered = []
     for u in urls:
@@ -290,6 +331,25 @@ def _extract_search_urls(data: dict) -> list[str]:
     return ordered
 
 
+# Groq models with server-side browser search (Exa-powered). Must be called
+# with tools=[{"type": "browser_search"}]. See
+# https://console.groq.com/docs/tool-use/built-in-tools/browser-search
+_GROQ_BROWSER_SEARCH_MODELS = frozenset(
+    {
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "openai/gpt-oss-safeguard-20b",
+    }
+)
+
+
+def _supports_groq_browser_search(backend: dict[str, str]) -> bool:
+    return (
+        backend.get("provider") == "groq"
+        and (backend.get("model") or "").strip() in _GROQ_BROWSER_SEARCH_MODELS
+    )
+
+
 def generate_search(
     text: str,
     language: str,
@@ -297,47 +357,102 @@ def generate_search(
 ) -> AnswerResult | None:
     """Answer by letting the model search the internet itself.
 
-    Uses the provider's agentic search model when one is configured
-    (``groq/compound`` on Groq). Returns None when unavailable so callers can
-    fall back to the DuckDuckGo + answer-model path.
+    Primary path: Groq ``openai/gpt-oss-120b`` (or -20b) with the built-in
+    ``browser_search`` tool — the supported replacement for the
+    decommissioned ``groq/compound`` system (EOL 2026-09-21).
+
+    Explicit fallback (preserves Compound-like behaviour when the native
+    tool is unavailable): DuckDuckGo search + the normal answer model via
+    :func:`generate`. Returns None only when neither path can answer, so
+    callers keep their existing ``llm_generate_search or ddgs`` flow.
     """
     settings = get_settings()
-    if not get_settings().LLM_ENABLED:
+    if not settings.LLM_ENABLED:
         return None
     backend = settings.llm_search_backend()
     if backend is None or not backend.get("api_key"):
         return None
 
     lang = language if language in _LANG_NAMES else "en"
-    data = _request_chat(
-        backend,
-        [
-            {"role": "system", "content": _SEARCH_SYSTEM_PROMPT},
-            *_history_messages(history),
-            {"role": "user", "content": f"User question: {text}"},
-        ],
-        temperature=0.3,
-        max_tokens=800,
-    )
-    if not data:
+    messages = [
+        {"role": "system", "content": _SEARCH_SYSTEM_PROMPT},
+        *_history_messages(history),
+        {"role": "user", "content": f"User question: {text}"},
+    ]
+
+    data = None
+    if _supports_groq_browser_search(backend):
+        # Native server-side browsing: the model decides when to search.
+        # tool_choice="required" forces a search pass for web-fallback
+        # questions (mirrors Compound's always-search behaviour).
+        data = _request_chat(
+            backend,
+            messages,
+            temperature=0.3,
+            max_tokens=800,
+            tools=[{"type": "browser_search"}],
+            tool_choice="required",
+        )
+        if data is not None:
+            try:
+                content = data["choices"][0]["message"]["content"].strip()
+            except (KeyError, IndexError, TypeError, AttributeError):
+                content = ""
+            if content:
+                urls = _extract_search_urls(data)
+                sources = ["Web search", *urls[:5]] if urls else ["Web search"]
+                return AnswerResult(
+                    content=content,
+                    response_type="conversational",
+                    intent="fallback",
+                    language=lang,
+                    sources=sources,
+                    is_demo=False,
+                )
+            logger.info("Groq browser_search returned no content; using ddgs fallback")
+    else:
+        # Non-Groq provider or a custom LLM_SEARCH_MODEL without a native
+        # search tool: try a plain call first (model knowledge), then ddgs.
+        data = _request_chat(
+            backend,
+            messages,
+            temperature=0.3,
+            max_tokens=800,
+        )
+        if data is not None:
+            try:
+                content = data["choices"][0]["message"]["content"].strip()
+            except (KeyError, IndexError, TypeError, AttributeError):
+                content = ""
+            if content:
+                urls = _extract_search_urls(data)
+                sources = ["Web search", *urls[:5]] if urls else ["Web search"]
+                return AnswerResult(
+                    content=content,
+                    response_type="conversational",
+                    intent="fallback",
+                    language=lang,
+                    sources=sources,
+                    is_demo=False,
+                )
+
+    # Explicit tool orchestration fallback (replaces Compound automation):
+    # User -> ddgs search -> model (with results as context) -> cited answer.
+    # This is the same path the orchestrator would take next, but doing it
+    # here keeps a single "search answer" entry point with sources attached.
+    if not settings.WEB_SEARCH_ENABLED:
         return None
     try:
-        content = data["choices"][0]["message"]["content"].strip()
-    except (KeyError, IndexError, TypeError):
-        return None
-    if not content:
-        return None
+        from app.rag.websearch import search as ddgs_search
 
-    urls = _extract_search_urls(data)
-    sources = ["Web search", *urls[:5]] if urls else ["Web search"]
-
-    return AnswerResult(
-        content=content,
-        response_type="conversational",
-        intent="fallback",
-        language=lang,
-        sources=sources,
-        is_demo=False,
+        web_results = ddgs_search(text)
+    except Exception as exc:  # noqa: BLE001 - search is best-effort
+        logger.warning("ddgs fallback search failed: %s", exc)
+        return None
+    if not web_results:
+        return None
+    return generate(
+        text, lang, chunks=None, history=history, web_results=web_results
     )
 
 

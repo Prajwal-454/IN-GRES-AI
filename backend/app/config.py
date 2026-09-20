@@ -15,7 +15,12 @@ _LLM_PRESETS = {
     "groq": {
         "base_url": "https://api.groq.com/openai/v1",
         "model": "openai/gpt-oss-120b",
-        "search_model": "groq/compound",  # agentic model with built-in web search
+        # Search-native model with server-side browser search via
+        # tools=[{"type": "browser_search"}] (Groq built-in, Exa-powered).
+        # Replaces the decommissioned groq/compound system (EOL 2026-09-21).
+        # Supported: openai/gpt-oss-120b, openai/gpt-oss-20b,
+        # openai/gpt-oss-safeguard-20b.
+        "search_model": "openai/gpt-oss-120b",
     },
     "openai": {
         "base_url": "https://api.openai.com/v1",
@@ -66,8 +71,11 @@ class Settings(BaseSettings):
     LLM_BASE_URL: str = ""  # blank -> derived from LLM_PROVIDER
     LLM_API_KEY: str = ""  # blank is fine for local Ollama
     LLM_MODEL: str = ""  # blank -> per-provider default (see below)
-    # Model used when the assistant must search the internet itself
-    # (blank -> per-provider default, e.g. groq/compound on Groq).
+    # Model used when the assistant must search the internet itself.
+    # Blank -> per-provider default (openai/gpt-oss-120b with browser_search
+    # on Groq; empty for other providers, which fall back to DuckDuckGo).
+    # Override with LLM_SEARCH_MODEL=openai/gpt-oss-20b for a faster/cheaper
+    # search pass, or leave blank to disable the search-native path.
     LLM_SEARCH_MODEL: str = ""
     # Full LLM control: the model composes EVERY chat reply (dataset facts are
     # still computed locally and injected as authoritative context, so numbers
@@ -92,9 +100,18 @@ class Settings(BaseSettings):
         return self.llm_backend_chain()[0].get("api_key", "")
 
     def resolved_llm_search_model(self) -> str:
-        """Model with built-in internet search (e.g. groq/compound)."""
+        """Search-native model id (Groq gpt-oss family with browser_search).
+
+        Returns "" when the active provider has no search-native model, in
+        which case callers fall back to DuckDuckGo + the normal answer model.
+        Set LLM_SEARCH_MODEL=none/disabled/off to force-disable the native
+        path even on Groq.
+        """
+        raw = self.LLM_SEARCH_MODEL.strip()
+        if raw.lower() in ("none", "disabled", "off", "false"):
+            return ""
         preset = _LLM_PRESETS.get(self.LLM_PROVIDER.lower().strip(), {})
-        return self.LLM_SEARCH_MODEL.strip() or preset.get("search_model", "")
+        return raw or preset.get("search_model", "")
 
     def llm_search_backend(self) -> dict[str, str] | None:
         """Backend able to search the web itself, or None when unavailable."""

@@ -414,7 +414,7 @@ def _build_graph() -> StateGraph:
 
     def _web_fallback_answer(state: dict, db: Session) -> AnswerResult | None:
         """Answer from the internet: prefer a search-native model (Groq
-        Compound searches by itself), else DuckDuckGo + the answer model."""
+        gpt-oss with browser_search), else DuckDuckGo + the answer model."""
         res = llm_generate_search(
             state["text"], state["language"], history=state.get("history")
         )
@@ -518,8 +518,8 @@ def _build_graph() -> StateGraph:
     def node_llm(state: dict, db: Session) -> str | None:
         chunks = state.get("rag_chunks") or []
         if not chunks:
-            # Internet first: a search-native model (e.g. Groq Compound) finds
-            # and reads the web itself; otherwise DuckDuckGo + answer model.
+            # Internet first: a search-native model (Groq gpt-oss with
+            # browser_search) browses itself; otherwise DuckDuckGo + model.
             res = llm_generate_search(
                 state["text"], state["language"], history=state.get("history")
             )
